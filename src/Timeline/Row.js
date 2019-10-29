@@ -13,8 +13,8 @@ const useStyles = makeStyles({
     right: 0,
     borderBottom: '1px solid red',
     position: 'absolute',
-//    userDrag: 'none',
-//    userSelect: 'none',
+    userDrag: 'none',
+    userSelect: 'none',
   },
   sidebar: {
     position: 'absolute',
@@ -28,8 +28,8 @@ const useStyles = makeStyles({
     top: 0,
     bottom: 0,
     overflow: 'hidden',
-//    userDrag: 'none',
-//    userSelect: 'none',
+    userDrag: 'none',
+    userSelect: 'none',
   },
   handle: {
     position: 'absolute',

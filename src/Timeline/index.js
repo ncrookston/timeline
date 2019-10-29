@@ -69,7 +69,7 @@ export default function Timeline(
           data={byGroup[g.id]}
           groupView={groupView}
           timespan={initialSpan}
-          sideWidth={sideWidth}
+          sideWidth={Math.max(100,sideWidth)}
           onResizeSidebar={onResize}
         />
       ))
