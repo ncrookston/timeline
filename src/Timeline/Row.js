@@ -4,22 +4,23 @@ import {makeStyles} from '@material-ui/core/styles';
 
 import {cloneDeep,fromPairs,isEqual,reduce,values} from 'lodash';
 
+import Draggable from './Draggable';
 import Item from './Item';
 
 const useStyles = makeStyles({
   row: {
     left: 0,
     right: 0,
-    border: '1px solid red',
+    borderBottom: '1px solid red',
     position: 'absolute',
-    userDrag: 'none',
-    userSelect: 'none',
+//    userDrag: 'none',
+//    userSelect: 'none',
   },
   sidebar: {
     position: 'absolute',
     left: 0,
     height: '100%',
-    border: '1px solid green',
+    overflow: 'hidden',
   },
   timeline: {
     position: 'absolute',
@@ -27,17 +28,18 @@ const useStyles = makeStyles({
     top: 0,
     bottom: 0,
     overflow: 'hidden',
-    userDrag: 'none',
-    userSelect: 'none',
+//    userDrag: 'none',
+//    userSelect: 'none',
   },
   handle: {
     position: 'absolute',
     height: '100%',
-    cursor: 'col-resize',
+    borderRight: '1px solid green',
   }
 });
-export default function Row({offset, height, group, data, timespan, groupView, sideWidth, onDragStart}) {
-  const resizeRef = React.useRef();
+export default function Row(
+  { offset, height, group, data, timespan, groupView, sideWidth, onResizeSidebar }
+) {
   const [itemOffsets, setItemOffsets] = React.useState({});
   const newItemOffsets = reduce(values(data.dict), (s, d) => {
     if (!s[d.id]) {
@@ -59,21 +61,21 @@ export default function Row({offset, height, group, data, timespan, groupView, s
   const classes = useStyles();
   return (
     <div className={classes.row} style={rowStyle}>
-      <span
+      <div
         className={classes.sidebar}
         style={{width: sideWidth}}
       >
         <GroupView
           group={group}
         />
-      </span>
-      <span
-        ref={resizeRef}
+      </div>
+      <div
         className={classes.handle}
-        style={{left: sideWidth, right: sideWidth+5}}
-        onMouseDown={evt => { evt.persist(); onDragStart(evt); }}
-      />
-      <span className={classes.timeline} style={{left: sideWidth+5}}>
+        style={{left: sideWidth, width: 5}}
+      >
+        <Draggable onDrag={onResizeSidebar} />
+      </div>
+      <div className={classes.timeline} style={{left: sideWidth+10}}>
       {
         values(data.dict).map(d => (
           <Item
@@ -84,7 +86,7 @@ export default function Row({offset, height, group, data, timespan, groupView, s
           />
         ))
       }
-      </span>
+      </div>
     </div>
   );
 }

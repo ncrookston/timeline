@@ -46,39 +46,9 @@ export default function Timeline(
     groupView = GroupView,
     initialSideWidth = 150,
   }) {
-  const [sidebar,setSidebar] = React.useState({
-    sideWidth: initialSideWidth,
-    mouseX: null
-  });
-
-  React.useEffect(() => {
-    const onMouseMove = evt => {
-      if (sidebar.mouseX !== null) {
-        console.log('mousemove');
-        setSidebar(sb => ({
-          sideWidth: sb.sideWidth + evt.screenX - sb.mouseX,
-          mouseX: evt.screenX
-        }));
-      }
-    };
-    const onMouseUp = function _omu(evt) {
-      if (sidebar.mouseX !== null) {
-        console.log('mouseup', evt.screenX);
-        setSidebar(sb => ({...sb, mouseX: null}));
-        window.removeEventListener('mousemove', onMouseMove);
-        window.removeEventListener('mouseup', _omu);
-      }
-    };
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
-    return () => {
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
-    };
-  }, [sidebar]);
-  const setDragStart = evt => {
-    console.log('mousedown', evt.screenX)
-    setSidebar(sb => ({...sb, mouseX: evt.screenX}));
+  const [sideWidth,setSideWidth] = React.useState(initialSideWidth);
+  const onResize = changePx => {
+    setSideWidth(sb => sb + changePx);
   };
   const byGroup = groupData(groups, data);
   const heights = getHeights(byGroup);
@@ -99,8 +69,8 @@ export default function Timeline(
           data={byGroup[g.id]}
           groupView={groupView}
           timespan={initialSpan}
-          sideWidth={sidebar.sideWidth}
-          onDragStart={setDragStart}
+          sideWidth={sideWidth}
+          onResizeSidebar={onResize}
         />
       ))
     }
