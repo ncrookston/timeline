@@ -48,7 +48,7 @@ export default function Timeline(
   }) {
   const [sideWidth,setSideWidth] = React.useState(initialSideWidth);
   const onResize = changePx => {
-    setSideWidth(sb => sb + changePx);
+    setSideWidth(sb => changePx);
   };
   const byGroup = groupData(groups, data);
   const heights = getHeights(byGroup);
@@ -69,7 +69,7 @@ export default function Timeline(
           data={byGroup[g.id]}
           groupView={groupView}
           timespan={initialSpan}
-          sideWidth={Math.max(100,sideWidth)}
+          sideWidth={sideWidth}
           onResizeSidebar={onResize}
         />
       ))

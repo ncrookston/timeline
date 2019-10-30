@@ -3,17 +3,12 @@ import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 
+import {LeftResizable,RightResizable} from './Draggable';
+
 const useStyles = makeStyles({
   inner: {
     position: 'absolute',
     //border: '1px solid green',
-//    background: `repeating-linear-gradient(
-//      45deg,
-//      #606dbc,
-//      #606dbc 10px,
-//      #465298 10px,
-//      #465298 20px
-//    )`
   },
   button: {
     width: '100%',
@@ -25,15 +20,33 @@ const useStyles = makeStyles({
     minWidth: '1px',
     minHeight: '1px',
     //border: '1px solid red',
-  }
+  },
+  left: {
+    position: 'absolute',
+    left: 0,
+    width: '3px',
+    top: 0,
+    height: '100%',
+    //border: '1px solid red',
+    backgroundColor: '#0002',
+  },
+  right: {
+    position: 'absolute',
+    right: 0,
+    width: '3px',
+    top: 0,
+    height: '100%',
+    backgroundColor: '#0002',
+    //border: '1px solid red',
+  },
 });
 
-export default function Item({timespan, data, offset}) {
-  const toPct = v => 100 * (v - timespan[0]) / (timespan[1] - timespan[0]);
-  const left = toPct(data.span[0]) + '%';
-  const width = toPct(data.span[1]) - toPct(data.span[0]) + '%';
+export default function Item({timespan, data, offset, fullWidthPx}) {
+  console.log(data)
+  const toPx = v => fullWidthPx * (v - timespan[0]) / (timespan[1] - timespan[0]);
+  const left = toPx(data.span[0]);
+  const width = toPx(data.span[1]) - toPx(data.span[0]);
   const style = {
-    position: 'absolute',
     top: offset,
     left,
     width,
@@ -44,6 +57,20 @@ export default function Item({timespan, data, offset}) {
       <Button className={classes.button} variant="contained">
         {data.id}
       </Button>
+      <div className={classes.left}>
+        <LeftResizable
+          size={width}
+          minSize={0}
+          onDrag={nw=>console.log(width,nw)}
+        />
+      </div>
+      <div className={classes.right}>
+        <RightResizable
+          size={width}
+          minSize={0}
+          onDrag={nw=>console.log(width,nw)}
+        />
+      </div>
     </div>
   );
 }

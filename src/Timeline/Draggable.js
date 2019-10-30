@@ -8,19 +8,26 @@ const useStyles = makeStyles({
   }
 });
 
-export default function Draggable({onDrag}) {
+export function Draggable({getDim, onStart, onDrag, cursor, onClick=null}) {
   const [mouse, setMouse] = React.useState(null);
+  const [didMove, setDidMove] = React.useState(false);
 
   React.useLayoutEffect(() => {
     const onMouseMove = evt => {
       if (mouse !== null) {
-        onDrag(evt.screenX - mouse);
-        setMouse(ms => ms === null ? null : evt.screenX);
+        const diff = getDim(evt) - mouse;
+        if (diff * diff > 10)
+          setDidMove(true);
+        if (didMove)
+          onDrag(diff);
       }
     };
     const onMouseUp = evt => {
       if (mouse !== null) {
+        if (onClick)
+          onClick(getDim(evt));
         setMouse(null);
+        setDidMove(false);
       }
     };
     window.addEventListener('mousemove', onMouseMove);
@@ -29,17 +36,46 @@ export default function Draggable({onDrag}) {
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
     };
-  }, [mouse, onDrag]);
+  }, [didMove, getDim, mouse, onClick, onDrag]);
 
   const classes = useStyles();
   return (
     <div
       className={classes.handle}
       onMouseDown={evt => {
-        setMouse(evt.screenX);
+        setMouse(getDim(evt));
+        setDidMove(false);
+        onStart();
       }}
-    style={{cursor: 'col-resize'}}
+      style={{cursor: cursor}}
     />
   );
 }
 
+export function LeftResizable({onDrag, size, minSize}) {
+  const [savedSize, setSavedSize] = React.useState(size);
+
+  return (
+    <Draggable
+      getDim={evt => evt.screenX}
+      onStart={() => setSavedSize(size)}
+      onDrag={change => onDrag(Math.max(minSize, savedSize - change))}
+      cursor='col-resize'
+    />
+  );
+}
+
+export function RightResizable({onDrag, size, minSize}) {
+  const [savedSize, setSavedSize] = React.useState(size);
+
+  return (
+    <Draggable
+      getDim={evt => evt.screenX}
+      onStart={() => setSavedSize(size)}
+      onDrag={change => {
+        onDrag(Math.max(minSize, savedSize + change))
+      }}
+      cursor='col-resize'
+    />
+  );
+}

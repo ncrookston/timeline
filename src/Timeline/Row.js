@@ -4,15 +4,14 @@ import {makeStyles} from '@material-ui/core/styles';
 
 import {cloneDeep,fromPairs,isEqual,reduce,values} from 'lodash';
 
-import Draggable from './Draggable';
+import {RightResizable} from './Draggable';
 import Item from './Item';
 
 const useStyles = makeStyles({
   row: {
+    position: 'absolute',
     left: 0,
     right: 0,
-    borderBottom: '1px solid red',
-    position: 'absolute',
     userDrag: 'none',
     userSelect: 'none',
   },
@@ -34,13 +33,17 @@ const useStyles = makeStyles({
   handle: {
     position: 'absolute',
     height: '100%',
-    borderRight: '1px solid green',
   }
 });
 export default function Row(
   { offset, height, group, data, timespan, groupView, sideWidth, onResizeSidebar }
 ) {
   const [itemOffsets, setItemOffsets] = React.useState({});
+  const [rect, setRect] = React.useState(null);
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    setRect(ref.current.getBoundingClientRect());
+  }, [sideWidth]);
   const newItemOffsets = reduce(values(data.dict), (s, d) => {
     if (!s[d.id]) {
       const ids = fromPairs(data.tree.search(...d.span).map(id => [s[id], true]));
@@ -73,9 +76,9 @@ export default function Row(
         className={classes.handle}
         style={{left: sideWidth, width: 5}}
       >
-        <Draggable onDrag={onResizeSidebar} />
+        <RightResizable size={sideWidth} minSize={100} onDrag={onResizeSidebar} />
       </div>
-      <div className={classes.timeline} style={{left: sideWidth+10}}>
+      <div ref={ref} className={classes.timeline} style={{left: sideWidth+10}}>
       {
         values(data.dict).map(d => (
           <Item
@@ -83,6 +86,7 @@ export default function Row(
             timespan={timespan}
             data={d}
             offset={(newItemOffsets[d.id] - 1) * 30 + 'px'}
+            fullWidthPx={rect ? rect.width : 0}
           />
         ))
       }
