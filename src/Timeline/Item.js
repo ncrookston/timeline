@@ -41,34 +41,61 @@ const useStyles = makeStyles({
   },
 });
 
-export default function Item({timespan, data, offset, fullWidthPx}) {
-  console.log(data)
-  const toPx = v => fullWidthPx * (v - timespan[0]) / (timespan[1] - timespan[0]);
+export default function Item({timespan, data, offset, fullWidthPx, onItemUpdate}) {
+  const [isSelected, setIsSelected] = React.useState(false);
+  const toPx = t => fullWidthPx * (t - timespan[0]) / (timespan[1] - timespan[0]);
+  const toTime = p => p * (timespan[1] - timespan[0]) / fullWidthPx + timespan[0];
   const left = toPx(data.span[0]);
   const width = toPx(data.span[1]) - toPx(data.span[0]);
+  const onResize = (newSizePx,side) => {
+    let newSpan = [...data.span];
+    if (side === 'left')
+      newSpan[0] = newSpan[1] - toTime(newSizePx);
+    else
+      newSpan[1] = newSpan[0] + toTime(newSizePx);
+    onItemUpdate(newSpan, data);
+  };
+//  const focusButton = button => {
+//    button.blur();
+//    button.ownerDocument.dispatchEvent(new window.Event('keydown'));
+//    button.focus();
+//  };
+  const onClick = evt => {
+    setIsSelected(!isSelected);
+    //const button = evt.target.parentElement;
+  };
   const style = {
     top: offset,
     left,
     width,
   };
+  const rStyle = {
+    visibility: isSelected ? 'visible' : 'hidden',
+  };
   const classes = useStyles();
   return (
     <div className={classes.inner} style={style}>
-      <Button className={classes.button} variant="contained">
+      <Button className={classes.button} variant="contained" onClick={onClick}>
         {data.id}
       </Button>
-      <div className={classes.left}>
+      <div
+        style={rStyle}
+        className={classes.left}
+      >
         <LeftResizable
           size={width}
           minSize={0}
-          onDrag={nw=>console.log(width,nw)}
+          onResize={newSize => onResize(newSize, 'left')}
         />
       </div>
-      <div className={classes.right}>
+      <div
+        style={rStyle}
+        className={classes.right}
+      >
         <RightResizable
           size={width}
           minSize={0}
-          onDrag={nw=>console.log(width,nw)}
+          onResize={newSize => onResize(newSize, 'right')}
         />
       </div>
     </div>

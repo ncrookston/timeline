@@ -12,8 +12,6 @@ const useStyles = makeStyles({
     position: 'absolute',
     left: 0,
     right: 0,
-    userDrag: 'none',
-    userSelect: 'none',
   },
   sidebar: {
     position: 'absolute',
@@ -27,8 +25,6 @@ const useStyles = makeStyles({
     top: 0,
     bottom: 0,
     overflow: 'hidden',
-    userDrag: 'none',
-    userSelect: 'none',
   },
   handle: {
     position: 'absolute',
@@ -36,15 +32,14 @@ const useStyles = makeStyles({
   }
 });
 export default function Row(
-  { offset, height, group, data, timespan, groupView, sideWidth, onResizeSidebar }
+  { offset, height, group, data, timespan, groupView, sideWidth, onResizeSidebar, onItemUpdate }
 ) {
-  const [itemOffsets, setItemOffsets] = React.useState({});
   const [rect, setRect] = React.useState(null);
   const ref = React.useRef(null);
   React.useEffect(() => {
     setRect(ref.current.getBoundingClientRect());
   }, [sideWidth]);
-  const newItemOffsets = reduce(values(data.dict), (s, d) => {
+  const itemOffsets = reduce(values(data.dict), (s, d) => {
     if (!s[d.id]) {
       const ids = fromPairs(data.tree.search(...d.span).map(id => [s[id], true]));
       let i = 1;
@@ -53,13 +48,12 @@ export default function Row(
       s[d.id] = i;
     }
     return s;
-  }, cloneDeep(itemOffsets));
-  if (!isEqual(newItemOffsets, itemOffsets))
-    setItemOffsets(newItemOffsets);
+  }, {});
   const rowStyle = {
     top: offset * 30 * height + 'px',
     height: 30 * height + 'px',
   };
+  console.log(height)
   const GroupView = groupView;
   const classes = useStyles();
   return (
@@ -76,7 +70,7 @@ export default function Row(
         className={classes.handle}
         style={{left: sideWidth, width: 5}}
       >
-        <RightResizable size={sideWidth} minSize={100} onDrag={onResizeSidebar} />
+        <RightResizable size={sideWidth} minSize={100} onResize={onResizeSidebar} />
       </div>
       <div ref={ref} className={classes.timeline} style={{left: sideWidth+10}}>
       {
@@ -85,8 +79,9 @@ export default function Row(
             key={d.id}
             timespan={timespan}
             data={d}
-            offset={(newItemOffsets[d.id] - 1) * 30 + 'px'}
+            offset={(itemOffsets[d.id] - 1) * 30 + 'px'}
             fullWidthPx={rect ? rect.width : 0}
+            onItemUpdate={onItemUpdate}
           />
         ))
       }

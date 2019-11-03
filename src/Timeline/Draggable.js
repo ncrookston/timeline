@@ -43,6 +43,7 @@ export function Draggable({getDim, onStart, onDrag, cursor, onClick=null}) {
     <div
       className={classes.handle}
       onMouseDown={evt => {
+        evt.preventDefault();
         setMouse(getDim(evt));
         setDidMove(false);
         onStart();
@@ -52,20 +53,20 @@ export function Draggable({getDim, onStart, onDrag, cursor, onClick=null}) {
   );
 }
 
-export function LeftResizable({onDrag, size, minSize}) {
+export function LeftResizable({onResize, size, minSize}) {
   const [savedSize, setSavedSize] = React.useState(size);
 
   return (
     <Draggable
       getDim={evt => evt.screenX}
       onStart={() => setSavedSize(size)}
-      onDrag={change => onDrag(Math.max(minSize, savedSize - change))}
+      onDrag={change => onResize(Math.max(minSize, savedSize - change))}
       cursor='col-resize'
     />
   );
 }
 
-export function RightResizable({onDrag, size, minSize}) {
+export function RightResizable({onResize, size, minSize}) {
   const [savedSize, setSavedSize] = React.useState(size);
 
   return (
@@ -73,7 +74,7 @@ export function RightResizable({onDrag, size, minSize}) {
       getDim={evt => evt.screenX}
       onStart={() => setSavedSize(size)}
       onDrag={change => {
-        onDrag(Math.max(minSize, savedSize + change))
+        onResize(Math.max(minSize, savedSize + change))
       }}
       cursor='col-resize'
     />
