@@ -39,27 +39,27 @@ const groups = [
 const initialData = [
   {
     id: '1',
-    span: [0, 3],
+    timespan: [0, 3],
     group: 'a'
   },
   {
     id: '2',
-    span: [3, 7],
+    timespan: [3, 7],
     group: 'a'
   },
   {
     id: '5',
-    span: [5, 9],
+    timespan: [5, 9],
     group: 'a'
   },
   {
     id: '3',
-    span: [1, 5],
+    timespan: [1, 5],
     group: 'b'
   },
   {
     id: '4',
-    span: [5, 10],
+    timespan: [5, 10],
     group: 'c'
   },
 ];
@@ -72,7 +72,7 @@ function App() {
 
   const onItemUpdate = (newSpan, datum) => {
     setData(produce(data, draft => {
-      draft[id_to_idx[datum.id]].span = newSpan.map(v => Math.min(Math.max(v,0),10));
+      draft[id_to_idx[datum.id]].timespan = newSpan.map(v => Math.min(Math.max(v,0),10));
     }));
   };
   return (
@@ -84,9 +84,10 @@ function App() {
         <Sidebar
           rowInfo={groups}
         />
-          <TimespanLayer
-            items={data}
-          />
+        <TimespanLayer
+          items={data}
+          onUpdate={onItemUpdate}
+        />
       </Timeline>
     </div>
   );
@@ -104,6 +105,9 @@ function App() {
 //        />
 //        <StackedCanvas
 //          //Canvas interactions
+//          //Should this be responsible for stacking vs overlapping vs anything else?
+//          //Currently thinking we shouldn't bother with this abstraction, just
+//          // put it in the base timeline. Or a different layer, probably.
 //        >
 //          <TimespanLayer
 //            //Item interactions

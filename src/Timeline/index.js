@@ -1,13 +1,9 @@
 import React from 'react';
 
-import { makeStyles } from '@material-ui/core/styles';
+import {makeStyles} from '@material-ui/core/styles';
 
-import {forOwn, fromPairs, map, reduce, values} from 'lodash';
+import {map, reduce} from 'lodash';
 
-import IntervalTree from 'node-interval-tree';
-
-import GroupView from './GroupView';
-import Row from './Row';
 import Context from './Context';
 
 const useStyles = makeStyles({
@@ -15,6 +11,7 @@ const useStyles = makeStyles({
     width: '100%',
     position: 'relative',
     border: '1px solid blue',
+    overflow: 'hidden',
   },
 });
 
@@ -24,20 +21,44 @@ export default function Timeline({
   children
 }) {
 
+  const containerRef = React.useRef();
+
+  const [containerWidthPx, setContainerWidthPx] = React.useState(null);
   const [rowLevels, setRowLevels] = React.useState({});
   const [sidebarWidthPx, setSidebarWidthPx] = React.useState(0);
+  const [timespan, setTimespan] = React.useState(initialTimespan);
+
+  const timePerPx = (timespan[1] - timespan[0]) / (containerWidthPx - sidebarWidthPx);
+  console.log('Time Per Pixel',timePerPx)
+  React.useEffect(() => {
+    const obs = new ResizeObserver(objs => {
+      const contWidth = objs[0].contentRect.width;
+      setContainerWidthPx(contWidth);
+      const sideWidth = Math.min(sidebarWidthPx, contWidth);
+      setSidebarWidthPx(sideWidth);
+//      if (containerWidthPx !== null)
+//        setTimespan([timespan[0], timespan[0] + timePerPx * (contWidth - sideWidth)]);
+    });
+    const curRef = containerRef.current;
+    obs.observe(curRef);
+    return () => obs.unobserve(curRef);
+  });
   const height = 30 * reduce(map(rowOrder, rowId => rowLevels[rowId]),
-      (sum, lvl) => sum + lvl, 0);
+    (sum, lvl) => sum + lvl, 0
+  );
   const classes = useStyles();
   return (
-    <div className={classes.outer} style={{height: height+'px'}}>
+    <div ref={containerRef} className={classes.outer} style={{height: height+'px'}}>
       <Context.Provider
         value={{
+          containerWidthPx,
           rowLevels,
           setRowLevels,
           rowOrder,
           sidebarWidthPx,
-          setSidebarWidthPx
+          setSidebarWidthPx,
+          timespan,
+          setTimespan,
         }}
       >
         {children}

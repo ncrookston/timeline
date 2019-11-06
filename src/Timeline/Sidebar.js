@@ -25,7 +25,10 @@ export default function Sidebar({rowInfo, initialSidebarWidth=150}) {
   const {
     rowOrder,
     rowLevels,
-    sidebarWidthPx, setSidebarWidthPx
+    sidebarWidthPx, setSidebarWidthPx,
+    containerWidthPx,
+    timespan,
+    setTimespan,
   } = React.useContext(Context);
 
   if (sidebarWidthPx === 0)
@@ -35,11 +38,15 @@ export default function Sidebar({rowInfo, initialSidebarWidth=150}) {
     (res,lvl) => res.concat(res[res.length-1] + lvl), [0]
   );
 
+  const timePerPx = (timespan[1] - timespan[0]) / (containerWidthPx - sidebarWidthPx);
   const onResize = widthPx => {
-    setSidebarWidthPx(widthPx);
+    const newSideWidth = Math.min(widthPx, containerWidthPx);
+    const newTimeWidth = containerWidthPx - newSideWidth;
+    const newTime = timespan[1] - timePerPx * newTimeWidth;
+    setSidebarWidthPx(newSideWidth);
+    setTimespan([newTime, timespan[1]]);
   };
   const classes = useStyles();
-  //TODO: Need to set a max width.
   return (<>
     {
       rowOrder.map((rowId,idx) => (
@@ -58,7 +65,7 @@ export default function Sidebar({rowInfo, initialSidebarWidth=150}) {
     }
     <div
       className={classes.handle}
-      style={{left: sidebarWidthPx, width: 5}}
+      style={{left: sidebarWidthPx-7, width: 5}}
     >
       <RightResizable size={sidebarWidthPx} minSize={100} onResize={onResize} />
     </div>

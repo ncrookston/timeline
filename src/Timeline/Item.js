@@ -3,12 +3,13 @@ import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 
+import Context from './Context';
 import {LeftResizable,RightResizable} from './Draggable';
 
 const useStyles = makeStyles({
   inner: {
     position: 'absolute',
-    //border: '1px solid green',
+//    border: '1px solid green',
   },
   button: {
     width: '100%',
@@ -41,19 +42,26 @@ const useStyles = makeStyles({
   },
 });
 
-export default function Item({timespan, data, offset, fullWidthPx, onItemUpdate}) {
+export default function Item({data, offset, onUpdate}) {
+  const {
+    timespan,
+    sidebarWidthPx,
+    containerWidthPx,
+  } = React.useContext(Context);
+  const fullWidth = containerWidthPx - sidebarWidthPx;
   const [isSelected, setIsSelected] = React.useState(false);
-  const toPx = t => fullWidthPx * (t - timespan[0]) / (timespan[1] - timespan[0]);
-  const toTime = p => p * (timespan[1] - timespan[0]) / fullWidthPx + timespan[0];
-  const left = toPx(data.span[0]);
-  const width = toPx(data.span[1]) - toPx(data.span[0]);
+  const toPx = t => fullWidth * (t - timespan[0]) / (timespan[1] - timespan[0]);
+  const toTime = p => p * (timespan[1] - timespan[0]) / fullWidth + timespan[0];
+  //TODO: Data accessors (timespan):
+  const left = toPx(data.timespan[0]);
+  const width = toPx(data.timespan[1]) - left;
   const onResize = (newSizePx,side) => {
-    let newSpan = [...data.span];
+    let newSpan = [...data.timespan];
     if (side === 'left')
       newSpan[0] = newSpan[1] - toTime(newSizePx);
     else
       newSpan[1] = newSpan[0] + toTime(newSizePx);
-    onItemUpdate(newSpan, data);
+    onUpdate(newSpan, data);
   };
 //  const focusButton = button => {
 //    button.blur();
