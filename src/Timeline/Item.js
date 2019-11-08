@@ -4,7 +4,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 
 import Context from './Context';
-import {LeftResizable,RightResizable} from './Draggable';
+import {LeftResizable,RightResizable,usePanX} from './Draggable';
 
 const useStyles = makeStyles({
   inner: {
@@ -44,15 +44,22 @@ const useStyles = makeStyles({
 
 export default function Item({data, offset, onUpdate}) {
   const {
-    timespan,
+    timeStart,
+    timePerPx,
     sidebarWidthPx,
     containerWidthPx,
   } = React.useContext(Context);
-  const fullWidth = containerWidthPx - sidebarWidthPx;
   const [isSelected, setIsSelected] = React.useState(false);
-  const toPx = t => fullWidth * (t - timespan[0]) / (timespan[1] - timespan[0]);
-  const toTime = p => p * (timespan[1] - timespan[0]) / fullWidth + timespan[0];
+  const onDrag = (evt,info) => {
+    onUpdate(data.timespan.map(t => t + timePerPx * info.delta), data);
+  };
+  const tmpPanListeners = usePanX({onDrag});
+  const panListeners = isSelected ? tmpPanListeners : {};
+  const toPx = t => (t - timeStart) / timePerPx;
+  const toTime = p => p * timePerPx + timeStart;
   //TODO: Data accessors (timespan):
+  //TODO: Expose an interface for replacing the renderers for sub-items.
+  //TODO: Allow styles to be overriden the same way as material-ui
   const left = toPx(data.timespan[0]);
   const width = toPx(data.timespan[1]) - left;
   const onResize = (newSizePx,side) => {
@@ -82,7 +89,7 @@ export default function Item({data, offset, onUpdate}) {
   };
   const classes = useStyles();
   return (
-    <div className={classes.inner} style={style}>
+    <div className={classes.inner} style={style} {...panListeners}>
       <Button className={classes.button} variant="contained" onClick={onClick}>
         {data.id}
       </Button>

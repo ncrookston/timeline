@@ -1,12 +1,12 @@
 import React from 'react';
-import { makeStyles } from '@material-ui/core/styles';
+import {makeStyles} from '@material-ui/core/styles';
 
 import {produce} from 'immer';
 import {reduce} from 'lodash';
 
 import Timeline from './Timeline';
 import Sidebar from './Timeline/Sidebar';
-//import StackedCanvas from './StackedCanvas';
+import MouseControlLayer from './Timeline/MouseControlLayer';
 import TimespanLayer from './Timeline/TimespanLayer';
 
 const useStyles = makeStyles({
@@ -84,10 +84,12 @@ function App() {
         <Sidebar
           rowInfo={groups}
         />
-        <TimespanLayer
-          items={data}
-          onUpdate={onItemUpdate}
-        />
+        <MouseControlLayer>
+          <TimespanLayer
+            items={data}
+            onUpdate={onItemUpdate}
+          />
+        </MouseControlLayer>
       </Timeline>
     </div>
   );

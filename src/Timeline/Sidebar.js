@@ -27,8 +27,9 @@ export default function Sidebar({rowInfo, initialSidebarWidth=150}) {
     rowLevels,
     sidebarWidthPx, setSidebarWidthPx,
     containerWidthPx,
-    timespan,
-    setTimespan,
+    timeStart,
+    setTimeStart,
+    timePerPx,
   } = React.useContext(Context);
 
   if (sidebarWidthPx === 0)
@@ -38,13 +39,11 @@ export default function Sidebar({rowInfo, initialSidebarWidth=150}) {
     (res,lvl) => res.concat(res[res.length-1] + lvl), [0]
   );
 
-  const timePerPx = (timespan[1] - timespan[0]) / (containerWidthPx - sidebarWidthPx);
   const onResize = widthPx => {
     const newSideWidth = Math.min(widthPx, containerWidthPx);
-    const newTimeWidth = containerWidthPx - newSideWidth;
-    const newTime = timespan[1] - timePerPx * newTimeWidth;
+    const newTime = timeStart - (sidebarWidthPx - newSideWidth) * timePerPx;
     setSidebarWidthPx(newSideWidth);
-    setTimespan([newTime, timespan[1]]);
+    setTimeStart(newTime);
   };
   const classes = useStyles();
   return (<>

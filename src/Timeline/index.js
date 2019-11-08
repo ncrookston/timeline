@@ -10,7 +10,7 @@ const useStyles = makeStyles({
   outer: {
     width: '100%',
     position: 'relative',
-    border: '1px solid blue',
+    //border: '1px solid blue',
     overflow: 'hidden',
   },
 });
@@ -26,23 +26,30 @@ export default function Timeline({
   const [containerWidthPx, setContainerWidthPx] = React.useState(null);
   const [rowLevels, setRowLevels] = React.useState({});
   const [sidebarWidthPx, setSidebarWidthPx] = React.useState(0);
-  const [timespan, setTimespan] = React.useState(initialTimespan);
-
-  const timePerPx = (timespan[1] - timespan[0]) / (containerWidthPx - sidebarWidthPx);
-  console.log('Time Per Pixel',timePerPx)
-  React.useEffect(() => {
+  const [timeStart, setTimeStart] = React.useState(initialTimespan[0]);
+  const [timePerPx, dosetTimePerPx] = React.useState(initialTimespan[1] - initialTimespan[0]);
+  const setTimePerPx = tpp => {
+    if (tpp > 5)
+      debugger;
+    dosetTimePerPx(tpp);
+  };
+  React.useLayoutEffect(() => {
     const obs = new ResizeObserver(objs => {
       const contWidth = objs[0].contentRect.width;
-      setContainerWidthPx(contWidth);
       const sideWidth = Math.min(sidebarWidthPx, contWidth);
+      if (containerWidthPx === null) {
+        const newTpp = timePerPx / (contWidth - sideWidth);
+        if (newTpp > 5)
+          debugger
+        setTimePerPx(newTpp);
+      }
+      setContainerWidthPx(contWidth);
       setSidebarWidthPx(sideWidth);
-//      if (containerWidthPx !== null)
-//        setTimespan([timespan[0], timespan[0] + timePerPx * (contWidth - sideWidth)]);
     });
     const curRef = containerRef.current;
     obs.observe(curRef);
     return () => obs.unobserve(curRef);
-  });
+  }, [containerWidthPx,sidebarWidthPx,timePerPx]);
   const height = 30 * reduce(map(rowOrder, rowId => rowLevels[rowId]),
     (sum, lvl) => sum + lvl, 0
   );
@@ -57,8 +64,10 @@ export default function Timeline({
           rowOrder,
           sidebarWidthPx,
           setSidebarWidthPx,
-          timespan,
-          setTimespan,
+          timeStart,
+          setTimeStart,
+          timePerPx,
+          setTimePerPx,
         }}
       >
         {children}

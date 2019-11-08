@@ -14,7 +14,7 @@ const useStyles = makeStyles({
     top: 0,
     height: '100%',
     overflow: 'hidden',
-    border: '1px solid orange',
+    //border: '1px solid orange',
   },
 });
 function groupByRowIds(rowIds, items) {
@@ -86,6 +86,7 @@ export default function TimespanLayer({items, onUpdate}) {
                 data={d}
                 offset={byRowIds[rowId].levels[d.id] * 30 + 'px'}
                 onUpdate={onUpdate}
+                onDrag={()=> console.log('dragging')}
               />
           );
         })
