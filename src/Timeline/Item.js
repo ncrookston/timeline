@@ -4,12 +4,12 @@ import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 
 import Context from './Context';
-import {LeftResizable,RightResizable,usePanX} from './Draggable';
+import {LeftResizable,RightResizable,usePan} from './Draggable';
 
 const useStyles = makeStyles({
   inner: {
     position: 'absolute',
-//    border: '1px solid green',
+    boxSizing: 'border-box',
   },
   button: {
     width: '100%',
@@ -20,7 +20,6 @@ const useStyles = makeStyles({
     top: 0,
     minWidth: '1px',
     minHeight: '1px',
-    //border: '1px solid red',
   },
   left: {
     position: 'absolute',
@@ -28,7 +27,6 @@ const useStyles = makeStyles({
     width: '3px',
     top: 0,
     height: '100%',
-    //border: '1px solid red',
     backgroundColor: '#0002',
   },
   right: {
@@ -38,36 +36,40 @@ const useStyles = makeStyles({
     top: 0,
     height: '100%',
     backgroundColor: '#0002',
-    //border: '1px solid red',
   },
 });
 
-export default function Item({data, offset, onUpdate}) {
+export default function Item({data, offset, onUpdate, timestep, onMouseEnter}) {
   const {
     timeStart,
     timePerPx,
-    sidebarWidthPx,
-    containerWidthPx,
   } = React.useContext(Context);
   const [isSelected, setIsSelected] = React.useState(false);
+  const [didDrag, setDidDrag] = React.useState(false);
+  const [initialTime, setInitialTime] = React.useState(null);
+  const snap = time => timestep ? timestep * Math.round(time / timestep) : time;
   const onDrag = (evt,info) => {
-    onUpdate(data.timespan.map(t => t + timePerPx * info.delta), data);
+    const new0 = initialTime + snap(timePerPx * info.offset[0]);
+    const new1 = new0 + data.timespan[1] - data.timespan[0];
+    onUpdate([new0, new1], data);
+    setDidDrag(true);
   };
-  const tmpPanListeners = usePanX({onDrag});
-  const panListeners = isSelected ? tmpPanListeners : {};
+  const onStart = () => setInitialTime(data.timespan[0]);
+  const panListeners = usePan({onDrag, onStart});
   const toPx = t => (t - timeStart) / timePerPx;
-  const toTime = p => p * timePerPx + timeStart;
   //TODO: Data accessors (timespan):
   //TODO: Expose an interface for replacing the renderers for sub-items.
   //TODO: Allow styles to be overriden the same way as material-ui
-  const left = toPx(data.timespan[0]);
-  const width = toPx(data.timespan[1]) - left;
+  const left = toPx(data.timespan[0]) - 1;
+  const width = toPx(data.timespan[1]) - left - 2;
   const onResize = (newSizePx,side) => {
     let newSpan = [...data.timespan];
     if (side === 'left')
-      newSpan[0] = newSpan[1] - toTime(newSizePx);
+      newSpan[0] = newSpan[1] - snap(newSizePx * timePerPx);
     else
-      newSpan[1] = newSpan[0] + toTime(newSizePx);
+      newSpan[1] = newSpan[0] + snap(newSizePx * timePerPx);
+    if (newSpan[0] > newSpan[1])
+      newSpan[1] = newSpan[0];
     onUpdate(newSpan, data);
   };
 //  const focusButton = button => {
@@ -76,7 +78,11 @@ export default function Item({data, offset, onUpdate}) {
 //    button.focus();
 //  };
   const onClick = evt => {
-    setIsSelected(!isSelected);
+    if (!didDrag)
+      setIsSelected(!isSelected);
+    else
+      setIsSelected(true);
+    setDidDrag(false);
     //const button = evt.target.parentElement;
   };
   const style = {
@@ -89,7 +95,7 @@ export default function Item({data, offset, onUpdate}) {
   };
   const classes = useStyles();
   return (
-    <div className={classes.inner} style={style} {...panListeners}>
+    <div className={classes.inner} style={style} {...panListeners} onMouseEnter={onMouseEnter}>
       <Button className={classes.button} variant="contained" onClick={onClick}>
         {data.id}
       </Button>

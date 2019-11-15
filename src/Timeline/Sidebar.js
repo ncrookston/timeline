@@ -7,24 +7,25 @@ import Context from './Context';
 import {RightResizable} from './Draggable';
 
 const useStyles = makeStyles({
-  row: {
+  category: {
     position: 'absolute',
     borderBottom: '1px solid red',
     left: 0,
+    contentBox: 'border-box',
   },
   handle: {
+    contentBox: 'border-box',
     position: 'absolute',
     top: 0,
-    height: '100%',
     border: '1px solid green',
   },
 });
 
-export default function Sidebar({rowInfo, initialSidebarWidth=150}) {
+export default function Sidebar({categoryInfo, initialSidebarWidth=150}) {
 
   const {
-    rowOrder,
-    rowLevels,
+    categoryOrder,
+    categoryLevels,
     sidebarWidthPx, setSidebarWidthPx,
     containerWidthPx,
     timeStart,
@@ -35,9 +36,10 @@ export default function Sidebar({rowInfo, initialSidebarWidth=150}) {
   if (sidebarWidthPx === 0)
     setSidebarWidthPx(initialSidebarWidth);
 
-  const offsets = reduce(map(rowOrder, rowId => rowLevels[rowId]),
+  const offsets = reduce(map(categoryOrder, categoryId => categoryLevels[categoryId]),
     (res,lvl) => res.concat(res[res.length-1] + lvl), [0]
   );
+  const fullHeight = offsets[offsets.length-1] * 30 + 'px';
 
   const onResize = widthPx => {
     const newSideWidth = Math.min(widthPx, containerWidthPx);
@@ -48,23 +50,23 @@ export default function Sidebar({rowInfo, initialSidebarWidth=150}) {
   const classes = useStyles();
   return (<>
     {
-      rowOrder.map((rowId,idx) => (
+      categoryOrder.map((categoryId,idx) => (
         <div
-          key={rowId}
-          className={classes.row}
+          key={categoryId}
+          className={classes.category}
           style={{
             top: 30 * offsets[idx] + 'px',
-            height: 30 * rowLevels[rowId] + 'px',
+            height: 30 * categoryLevels[categoryId] + 'px',
             width: sidebarWidthPx
           }}
         >
-          {rowId}
+          {categoryId}
         </div>
       ))
     }
     <div
       className={classes.handle}
-      style={{left: sidebarWidthPx-7, width: 5}}
+      style={{left: sidebarWidthPx-7, width: 5, height: fullHeight}}
     >
       <RightResizable size={sidebarWidthPx} minSize={100} onResize={onResize} />
     </div>

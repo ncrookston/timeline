@@ -8,7 +8,13 @@ const useStyles = makeStyles({
   }
 });
 
-export function useDraggable({getDim, onStart, onDrag, onClick=null}) {
+function getPt(evt) {
+  return [evt.screenX, evt.screenY];
+}
+function ptDiff(evt, pt) {
+  return [evt.screenX - pt[0], evt.screenY - pt[1]];
+}
+export function useDraggable({onStart, onDrag, onClick=null}) {
   const [firstMouse, setFirstMouse] = React.useState(null);
   const [lastMouse, setLastMouse] = React.useState(null);
   const [didMove, setDidMove] = React.useState(false);
@@ -18,20 +24,21 @@ export function useDraggable({getDim, onStart, onDrag, onClick=null}) {
       if (firstMouse !== null) {
         evt.preventDefault();
         evt.stopPropagation();
-        const diff = getDim(evt) - firstMouse;
-        if (diff * diff > 10)
+        const diff = ptDiff(evt,firstMouse);
+        if (diff[0] * diff[0] + diff[1] + diff[1] > 10)
           setDidMove(true);
         if (didMove) {
-          onDrag(evt, {offset: diff, delta: getDim(evt) - lastMouse});
-          setLastMouse(getDim(evt));
+          onDrag(evt, {offset: diff, delta: ptDiff(evt, lastMouse)});
+          setLastMouse(getPt(evt));
         }
-      } };
+      }
+    };
     const onMouseUp = evt => {
       if (firstMouse !== null) {
         evt.preventDefault();
         evt.stopPropagation();
         if (onClick)
-          onClick(getDim(evt));
+          onClick([evt.screenX,evt.screenY])
         setFirstMouse(null);
         setLastMouse(null);
         setDidMove(false);
@@ -43,29 +50,29 @@ export function useDraggable({getDim, onStart, onDrag, onClick=null}) {
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
     };
-  }, [didMove, getDim, firstMouse, lastMouse, onClick, onDrag]);
+  }, [didMove, firstMouse, lastMouse, onClick, onDrag]);
 
   return {
     onMouseDown: evt => {
       evt.preventDefault();
       evt.stopPropagation();
-      setFirstMouse(getDim(evt));
-      setLastMouse(getDim(evt));
+      setFirstMouse(getPt(evt));
+      setLastMouse(getPt(evt));
       setDidMove(false);
       if (onStart)
         onStart();
     }
   };
 }
-export function usePanX({onDrag, onClick=null}) {
+export function usePan({onDrag, onClick=null, onStart=null}) {
   return useDraggable({
-    getDim: evt => evt.screenX, 
     onDrag,
     onClick,
+    onStart
   });
 }
-export function Draggable({getDim, onStart, onDrag, cursor, onClick=null}) {
-  const listeners = useDraggable({getDim, onStart, onDrag, onClick})
+export function Draggable({onStart, onDrag, cursor, onClick=null}) {
+  const listeners = useDraggable({onStart, onDrag, onClick})
   const classes = useStyles();
   return (
     <div
@@ -81,9 +88,10 @@ export function LeftResizable({onResize, size, minSize}) {
 
   return (
     <Draggable
-      getDim={evt => evt.screenX}
       onStart={() => setSavedSize(size)}
-      onDrag={(evt,info) => onResize(Math.max(minSize, savedSize - info.offset))}
+      onDrag={(evt,info) => {
+        onResize(Math.max(minSize, savedSize - info.offset[0]))
+      }}
       cursor='col-resize'
     />
   );
@@ -94,10 +102,9 @@ export function RightResizable({onResize, size, minSize}) {
 
   return (
     <Draggable
-      getDim={evt => evt.screenX}
       onStart={() => setSavedSize(size)}
       onDrag={(evt,info) => {
-        onResize(Math.max(minSize, savedSize + info.offset))
+        onResize(Math.max(minSize, savedSize + info.offset[0]))
       }}
       cursor='col-resize'
     />

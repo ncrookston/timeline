@@ -11,28 +11,22 @@ const useStyles = makeStyles({
     width: '100%',
     position: 'relative',
     //border: '1px solid blue',
-    overflow: 'hidden',
   },
 });
 
 export default function Timeline({
   initialTimespan,//Need a sensible default...
-  rowOrder,
+  categoryOrder,
   children
 }) {
 
   const containerRef = React.useRef();
 
   const [containerWidthPx, setContainerWidthPx] = React.useState(null);
-  const [rowLevels, setRowLevels] = React.useState({});
+  const [categoryLevels, setCategoryLevels] = React.useState({});
   const [sidebarWidthPx, setSidebarWidthPx] = React.useState(0);
   const [timeStart, setTimeStart] = React.useState(initialTimespan[0]);
-  const [timePerPx, dosetTimePerPx] = React.useState(initialTimespan[1] - initialTimespan[0]);
-  const setTimePerPx = tpp => {
-    if (tpp > 5)
-      debugger;
-    dosetTimePerPx(tpp);
-  };
+  const [timePerPx, setTimePerPx] = React.useState(initialTimespan[1] - initialTimespan[0]);
   React.useLayoutEffect(() => {
     const obs = new ResizeObserver(objs => {
       const contWidth = objs[0].contentRect.width;
@@ -50,7 +44,7 @@ export default function Timeline({
     obs.observe(curRef);
     return () => obs.unobserve(curRef);
   }, [containerWidthPx,sidebarWidthPx,timePerPx]);
-  const height = 30 * reduce(map(rowOrder, rowId => rowLevels[rowId]),
+  const height = 30 * reduce(map(categoryOrder, categoryId => categoryLevels[categoryId]),
     (sum, lvl) => sum + lvl, 0
   );
   const classes = useStyles();
@@ -59,9 +53,9 @@ export default function Timeline({
       <Context.Provider
         value={{
           containerWidthPx,
-          rowLevels,
-          setRowLevels,
-          rowOrder,
+          categoryLevels,
+          setCategoryLevels,
+          categoryOrder,
           sidebarWidthPx,
           setSidebarWidthPx,
           timeStart,
