@@ -2,8 +2,9 @@ import React from 'react';
 import {makeStyles} from '@material-ui/core/styles';
 
 import IntervalTree from 'node-interval-tree';
-import {concat, find, forOwn, fromPairs, initial, isEqual, last, map, mapValues, max, range, reduce, values, zip} from 'lodash';
+import {concat, find, forOwn, fromPairs, initial, mapValues, max, range, reduce, values, zip} from 'lodash';
 
+import getOrderedOffsets from './getOrderedOffsets';
 import Context from './Context';
 import Item from './Item';
 
@@ -13,14 +14,15 @@ const useStyles = makeStyles({
     left: 0,
     right: 0,
     top: 0,
-    border: '1px solid orange',
+    borderBottom: '1px solid orange',
+    boxSizing: 'border-box',
   },
   canvas: {
     position: 'absolute',
     height: '100%',
     right: 0,
     top: 0,
-    contentBox: 'border-box',
+    boxSizing: 'border-box',
     overflow: 'hidden',
   }
 });
@@ -67,38 +69,35 @@ function getCategoryIdMap(categoryIds, items) {
 export default function TimespanLayer({items, onUpdateCategory=null, onUpdateTime=null, timestep}) {
   const {
     categoryOrder,
-    categoryLevels,
-    setCategoryLevels,
-    sidebarWidthPx
+    categoryHeights,
+    setCategoryHeights,
   } = React.useContext(Context);
   const [hoverCategory, setHoverCategory] = React.useState(null);
-  const byCategoryIds = React.useMemo(() => getCategoryIdMap(categoryOrder, items), [categoryOrder,items]);
-  const newLevels = mapValues(byCategoryIds, obj => max(concat(0,values(obj.levels))) + 1);
-  if (!isEqual(newLevels,categoryLevels)) {
-    setCategoryLevels(newLevels);
-  }
-  const categoryOffsets = reduce(
-    map(categoryOrder, categoryId => newLevels[categoryId]),
-    (res,lvl) => res.concat(last(res) + lvl),
-    [0]
+  const byCategoryIds = React.useMemo(() => (
+      getCategoryIdMap(categoryOrder, items)
+    ),
+    [categoryOrder,items]
   );
-  const byCategoryOffsets = fromPairs(zip(categoryOrder, initial(categoryOffsets)));
+  setCategoryHeights('timepsan', mapValues(byCategoryIds, obj =>
+    30 * (max(concat(0,values(obj.levels))) + 1)
+  ));
+  const offsets = getOrderedOffsets(categoryOrder, categoryHeights);
+  const offsetsByCat = fromPairs(zip(categoryOrder, initial(offsets)));
   const onUpdateImpl = (timespan, data) => {
     onUpdateTime(timespan, data);
     if (onUpdateCategory && hoverCategory !== null && hoverCategory !== data.category)
       onUpdateCategory(hoverCategory,data);
   };
   const classes = useStyles();
-  return (
-    <div className={classes.canvas} style={{left: sidebarWidthPx}}>
+  return (<>
     {
       categoryOrder.map(categoryId => (
         <div
           key={categoryId}
           className={classes.timeline}
           style={{
-            top: byCategoryOffsets[categoryId] * 30 + 'px',
-            height: newLevels[categoryId] * 30 + 'px',
+            top: offsetsByCat[categoryId] + 'px',
+            height: categoryHeights[categoryId] + 'px',
           }}
           onMouseEnter={() => setHoverCategory(categoryId, null)}
         />
@@ -106,7 +105,7 @@ export default function TimespanLayer({items, onUpdateCategory=null, onUpdateTim
     }
     {
       items.map(d => {
-        const interOffset = byCategoryOffsets[d.category] * 30;
+        const interOffset = offsetsByCat[d.category];
         const intraOffset = byCategoryIds[d.category].levels[d.id] * 30;
         return (
           <Item
@@ -115,12 +114,12 @@ export default function TimespanLayer({items, onUpdateCategory=null, onUpdateTim
             offset={interOffset + intraOffset + 'px'}
             onUpdate={(span,data) => onUpdateImpl(span, data)}
             timestep={timestep}
-            onMouseEnter={() => setHoverCategory(d.category, byCategoryOffsets[d.category])}
+            onMouseEnter={() => setHoverCategory(d.category, offsetsByCat[d.category])}
           />
         );
       })
     }
-    </div>
+    </>
   );
 }
 

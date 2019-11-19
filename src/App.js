@@ -5,8 +5,9 @@ import {produce} from 'immer';
 import {reduce} from 'lodash';
 
 import Timeline from './Timeline';
-import Sidebar from './Timeline/Sidebar';
+import TimeMarks from './Timeline/TimeMarks';
 import MouseControlLayer from './Timeline/MouseControlLayer';
+import {LeftSidebar,RightSidebar} from './Timeline/Sidebar';
 import TimespanLayer from './Timeline/TimespanLayer';
 
 const useStyles = makeStyles({
@@ -64,7 +65,7 @@ const initialData = [
   },
 ];
 
-function App() {
+export default function App() {
   const [data, setData] = React.useState(initialData);
   const classes = useStyles();
   const id_to_idx = reduce(data, (obj, datum, i) => ({...obj, [datum.id]: i}), {});
@@ -88,45 +89,22 @@ function App() {
         initialTimespan={[0,10]}
         categoryOrder={['c','a','b']}
       >
-        <Sidebar
+        <LeftSidebar
           categoryInfo={categories}
         />
         <MouseControlLayer>
+          <TimeMarks markStep={2} />
           <TimespanLayer
             items={data}
             onUpdateTime={onItemUpdateTime}
             onUpdateCategory={onUpdateCategory}
-            timestep={.5}
+            timestep={.1}
           />
         </MouseControlLayer>
+        <RightSidebar
+          categoryInfo={categories}
+        />
       </Timeline>
     </div>
   );
 }
-
-//  return (
-//    <div className={classes.root}>
-//      <Timeline
-//        initialTimespan={[0,10]}
-//        categoryOrder={['c','a','b']}
-//      >
-//        <Sidebar
-//          //Sidebar interactions
-//          categories={categories}
-//        />
-//        <StackedCanvas
-//          //Canvas interactions
-//          //Should this be responsible for stacking vs overlapping vs anything else?
-//          //Currently thinking we shouldn't bother with this abstraction, just
-//          // put it in the base timeline. Or a different layer, probably.
-//        >
-//          <TimespanLayer
-//            //Item interactions
-//            items={data}
-//            onUpdate={onItemUpdate}
-//          />
-//        </StackedCanvas>
-//      </Timeline>
-//    </div>
-//  );
-export default App;

@@ -1,51 +1,57 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 
-import {map,reduce} from 'lodash';
-
 import Context from './Context';
-import {RightResizable} from './Draggable';
+import {LeftResizable,RightResizable} from './Draggable';
+import getOrderedOffsets from './getOrderedOffsets';
 
 const useStyles = makeStyles({
   category: {
     position: 'absolute',
-    borderBottom: '1px solid red',
-    left: 0,
-    contentBox: 'border-box',
+    border: '1px solid red',
+    boxSizing: 'border-box',
+    paddingLeft: '10px',
   },
   handle: {
-    contentBox: 'border-box',
+    boxSizing: 'border-box',
     position: 'absolute',
     top: 0,
     border: '1px solid green',
   },
 });
 
-export default function Sidebar({categoryInfo, initialSidebarWidth=150}) {
+export function Sidebar({categoryInfo, initialSidebarWidth, isLeft}) {
 
   const {
     categoryOrder,
-    categoryLevels,
-    sidebarWidthPx, setSidebarWidthPx,
+    categoryHeights,
+    leftSidebarWidthPx, setLeftSidebarWidthPx,
+    rightSidebarWidthPx, setRightSidebarWidthPx,
     containerWidthPx,
     timeStart,
     setTimeStart,
     timePerPx,
   } = React.useContext(Context);
 
+  const Resizable = isLeft ? RightResizable : LeftResizable;
+  const sidebarWidthPx = isLeft ? leftSidebarWidthPx : rightSidebarWidthPx;
+  const otherWidthPx = !isLeft ? leftSidebarWidthPx : rightSidebarWidthPx;
+  const setSidebarWidthPx = isLeft ? setLeftSidebarWidthPx : setRightSidebarWidthPx;
+  const resizeStyle = isLeft ? {left: sidebarWidthPx-7} : {right: sidebarWidthPx-7};
+  const sideStyle = isLeft ? {left: 0} : {right: 0};
   if (sidebarWidthPx === 0)
     setSidebarWidthPx(initialSidebarWidth);
 
-  const offsets = reduce(map(categoryOrder, categoryId => categoryLevels[categoryId]),
-    (res,lvl) => res.concat(res[res.length-1] + lvl), [0]
-  );
-  const fullHeight = offsets[offsets.length-1] * 30 + 'px';
+  const offsets = getOrderedOffsets(categoryOrder, categoryHeights);
+  const fullHeight = offsets[offsets.length-1];
 
   const onResize = widthPx => {
-    const newSideWidth = Math.min(widthPx, containerWidthPx);
-    const newTime = timeStart - (sidebarWidthPx - newSideWidth) * timePerPx;
+    const newSideWidth = Math.min(widthPx, containerWidthPx - otherWidthPx);
     setSidebarWidthPx(newSideWidth);
-    setTimeStart(newTime);
+    if (isLeft) {
+      const newTime = timeStart - (sidebarWidthPx - newSideWidth) * timePerPx;
+      setTimeStart(newTime);
+    }
   };
   const classes = useStyles();
   return (<>
@@ -55,9 +61,10 @@ export default function Sidebar({categoryInfo, initialSidebarWidth=150}) {
           key={categoryId}
           className={classes.category}
           style={{
-            top: 30 * offsets[idx] + 'px',
-            height: 30 * categoryLevels[categoryId] + 'px',
-            width: sidebarWidthPx
+            ...sideStyle,
+            top: offsets[idx] + 'px',
+            height: categoryHeights[categoryId] + 'px',
+            width: sidebarWidthPx-7
           }}
         >
           {categoryId}
@@ -66,11 +73,29 @@ export default function Sidebar({categoryInfo, initialSidebarWidth=150}) {
     }
     <div
       className={classes.handle}
-      style={{left: sidebarWidthPx-7, width: 5, height: fullHeight}}
+      style={{...resizeStyle, width: 5, height: fullHeight+'px'}}
     >
-      <RightResizable size={sidebarWidthPx} minSize={100} onResize={onResize} />
+      <Resizable size={sidebarWidthPx} minSize={100} onResize={onResize} />
     </div>
   </>);
 }
 
+export function LeftSidebar({categoryInfo, initialSidebarWidth=150}) {
+  return (
+    <Sidebar
+      categoryInfo={categoryInfo}
+      initialSidebarWidth={initialSidebarWidth}
+      isLeft
+    />
+  );
+}
 
+export function RightSidebar({categoryInfo, initialSidebarWidth=150}) {
+  return (
+    <Sidebar
+      categoryInfo={categoryInfo}
+      initialSidebarWidth={initialSidebarWidth}
+      isLeft={false}
+    />
+  );
+}
