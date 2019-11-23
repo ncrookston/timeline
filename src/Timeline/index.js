@@ -8,30 +8,53 @@ import getOrderedOffsets from './getOrderedOffsets';
 import Context from './Context';
 
 const useStyles = makeStyles({
+  label: {
+    boxSizing: 'border-box',
+    position: 'relative',
+    border: '1px solid blue',
+    height: '30px',
+  },
   outer: {
+    boxSizing: 'border-box',
     width: '100%',
     position: 'relative',
-    //border: '1px solid blue',
+    //border: '1px solid green',
   },
 });
 
 export default function Timeline({
   initialTimespan,//Need a sensible default...
   categoryOrder,
+  minTime=1/3600,
+  maxTime=365*24,
+  header=null,
+  footer=null,
   children
 }) {
 
   const containerRef = React.useRef();
 
   const [containerWidthPx, setContainerWidthPx] = React.useState(null);
+  const [headerHeightPx, setHeaderHeightPx] = React.useState(0);
+  const [footerHeightPx, setFooterHeightPx] = React.useState(0);
   const [categoryHeights, dosetCategoryHeights] = React.useState({
     max: fromPairs(categoryOrder.map(catId => [catId, 1])),
     layers: {}
   });
   const [leftSidebarWidthPx, setLeftSidebarWidthPx] = React.useState(0);
   const [rightSidebarWidthPx, setRightSidebarWidthPx] = React.useState(0);
-  const [timeStart, setTimeStart] = React.useState(initialTimespan[0]);
-  const [timePerPx, setTimePerPx] = React.useState(initialTimespan[1] - initialTimespan[0]);
+  const [timeStart, dosetTimeStart] = React.useState(initialTimespan[0]);
+  const [timeEnd, setTimeEnd] = React.useState(initialTimespan[1]);
+  const [timePerPx, dosetTimePerPx] = React.useState(initialTimespan[1] - initialTimespan[0]);
+  const setTimePerPx = React.useCallback(timePP => {
+    dosetTimePerPx(timePP);
+  }, [dosetTimePerPx]);
+  const setTimeStart = newTimeStart => {
+    dosetTimeStart(newTimeStart);
+    setTimeEnd(newTimeStart + timePerPx *
+      (containerWidthPx - leftSidebarWidthPx - rightSidebarWidthPx)
+    );
+  };
   const setCategoryHeights = (newLayerId, heightMap) => {
     if (!categoryHeights.layers[newLayerId]
         || !isEqual(categoryHeights.layers[newLayerId], heightMap)) {
@@ -71,8 +94,11 @@ export default function Timeline({
     const curRef = containerRef.current;
     obs.observe(curRef);
     return () => obs.unobserve(curRef);
-  }, [containerWidthPx,leftSidebarWidthPx,rightSidebarWidthPx,timePerPx]);
-  const height = last(getOrderedOffsets(categoryOrder, categoryHeights.max));
+  }, [containerWidthPx,leftSidebarWidthPx,rightSidebarWidthPx,timePerPx,setTimePerPx]);
+  const height = last(getOrderedOffsets(categoryOrder, categoryHeights.max)) + headerHeightPx + footerHeightPx;
+  const width = containerWidthPx - leftSidebarWidthPx - rightSidebarWidthPx;
+  const Header = header;
+  const Footer = footer;
   const classes = useStyles();
   return (
     <div ref={containerRef} className={classes.outer} style={{height: height+'px'}}>
@@ -86,13 +112,23 @@ export default function Timeline({
           setLeftSidebarWidthPx,
           rightSidebarWidthPx,
           setRightSidebarWidthPx,
+          headerHeightPx,
+          setHeaderHeightPx,
+          footerHeightPx,
+          setFooterHeightPx,
+
           timeStart,
           setTimeStart,
+          timeEnd,
           timePerPx,
           setTimePerPx,
+          minTime,
+          maxTime,
         }}
       >
+        {header && <Header />}
         {children}
+        {footer && <Footer />}
       </Context.Provider>
     </div>
   );

@@ -7,21 +7,25 @@ import {usePan} from './Draggable';
 const useStyles = makeStyles({
   root: {
     position: 'absolute',
-    height: '100%',
     boxSizing: 'border-box',
     overflow: 'hidden',
-    border: '1px solid blue',
+    border: '1px solid red',
   }
 });
 
 export default function MouseControlLayer({children}) {
   const {
+    containerWidthPx,
+    maxTime,
+    minTime,
     timeStart,
     setTimeStart,
     timePerPx,
     setTimePerPx,
     leftSidebarWidthPx,
     rightSidebarWidthPx,
+    headerHeightPx,
+    footerHeightPx,
   } = React.useContext(Context);
   const onDrag = (evt, info) => {
     setTimeStart(timeStart - info.delta[0] * timePerPx);
@@ -32,9 +36,13 @@ export default function MouseControlLayer({children}) {
       if (evt.metaKey || evt.ctrlKey) {
         evt.preventDefault();
         evt.stopPropagation();
-        const newTPP = timePerPx * Math.pow(.8, .1 * evt.deltaY);
+        let newTPP = timePerPx * Math.pow(.8, .1 * evt.deltaY);
+        if (maxTime !== null)
+          newTPP = Math.min(newTPP, maxTime / containerWidthPx);
+        if (minTime !== null)
+          newTPP = Math.max(newTPP, minTime / containerWidthPx);
         setTimePerPx(newTPP);
-        const off = evt.clientX - ref.current.getBoundingClientRect().left - leftSidebarWidthPx;
+        const off = evt.clientX - ref.current.getBoundingClientRect().left;
         const fixedTimePt = off * timePerPx + timeStart;
         setTimeStart(fixedTimePt - newTPP * off);
       }
@@ -53,6 +61,8 @@ export default function MouseControlLayer({children}) {
       style={{
         left: leftSidebarWidthPx,
         right: rightSidebarWidthPx,
+        top: headerHeightPx,
+        bottom: footerHeightPx,
       }}
       {...panListeners}
     >

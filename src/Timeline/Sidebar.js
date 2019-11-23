@@ -1,5 +1,5 @@
 import React from 'react';
-import { makeStyles } from '@material-ui/core/styles';
+import {makeStyles} from '@material-ui/core/styles';
 
 import Context from './Context';
 import {LeftResizable,RightResizable} from './Draggable';
@@ -8,7 +8,7 @@ import getOrderedOffsets from './getOrderedOffsets';
 const useStyles = makeStyles({
   category: {
     position: 'absolute',
-    border: '1px solid red',
+    borderTop: '1px solid red',
     boxSizing: 'border-box',
     paddingLeft: '10px',
   },
@@ -27,6 +27,7 @@ export function Sidebar({categoryInfo, initialSidebarWidth, isLeft}) {
     categoryHeights,
     leftSidebarWidthPx, setLeftSidebarWidthPx,
     rightSidebarWidthPx, setRightSidebarWidthPx,
+    headerHeightPx, footerHeightPx,
     containerWidthPx,
     timeStart,
     setTimeStart,
@@ -43,7 +44,7 @@ export function Sidebar({categoryInfo, initialSidebarWidth, isLeft}) {
     setSidebarWidthPx(initialSidebarWidth);
 
   const offsets = getOrderedOffsets(categoryOrder, categoryHeights);
-  const fullHeight = offsets[offsets.length-1];
+  const fullHeight = headerHeightPx + offsets[offsets.length-1];
 
   const onResize = widthPx => {
     const newSideWidth = Math.min(widthPx, containerWidthPx - otherWidthPx);
@@ -62,7 +63,7 @@ export function Sidebar({categoryInfo, initialSidebarWidth, isLeft}) {
           className={classes.category}
           style={{
             ...sideStyle,
-            top: offsets[idx] + 'px',
+            top: headerHeightPx + offsets[idx] + 'px',
             height: categoryHeights[categoryId] + 'px',
             width: sidebarWidthPx-7
           }}

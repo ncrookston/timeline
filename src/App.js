@@ -6,8 +6,9 @@ import {reduce} from 'lodash';
 
 import Timeline from './Timeline';
 import TimeMarks from './Timeline/TimeMarks';
-import MouseControlLayer from './Timeline/MouseControlLayer';
+import MouseControlCanvas from './Timeline/MouseControlCanvas';
 import {LeftSidebar,RightSidebar} from './Timeline/Sidebar';
+import {TopTimeLabel} from './Timeline/TimeLabel';
 import TimespanLayer from './Timeline/TimespanLayer';
 
 const useStyles = makeStyles({
@@ -88,22 +89,20 @@ export default function App() {
       <Timeline
         initialTimespan={[0,10]}
         categoryOrder={['c','a','b']}
+        header={TopTimeLabel}
       >
         <LeftSidebar
           categoryInfo={categories}
         />
-        <MouseControlLayer>
+        <MouseControlCanvas>
           <TimeMarks markStep={2} />
           <TimespanLayer
             items={data}
             onUpdateTime={onItemUpdateTime}
             onUpdateCategory={onUpdateCategory}
-            timestep={.1}
+            timestep={.5}
           />
-        </MouseControlLayer>
-        <RightSidebar
-          categoryInfo={categories}
-        />
+        </MouseControlCanvas>
       </Timeline>
     </div>
   );

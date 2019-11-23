@@ -3,15 +3,15 @@ import {makeStyles} from '@material-ui/core/styles';
 import {range} from 'lodash';
 import Context from './Context';
 
-
 const useStyles = makeStyles({
   hash: {
     top: 0,
     position: 'absolute',
-    border: '1px solid blue',
+    borderRight: '1px solid blue',
     boxSizing: 'border-box',
   },
 });
+
 export default function TimeMarks({markStep=1}) {
   const classes = useStyles();
   const {
