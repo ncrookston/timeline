@@ -26,7 +26,7 @@ const useStyles = makeStyles({
     overflow: 'hidden',
   }
 });
-function getCategoryIdMap(categoryIds, items) {
+function getCategoryIdMap(categoryIds, items, getCategory, getId, getTimespan) {
   let categoryItems = fromPairs(categoryIds.map(categoryId => [
     categoryId, {
       dict: {},
@@ -35,17 +35,16 @@ function getCategoryIdMap(categoryIds, items) {
     }
   ]));
 
-  //TODO: Use category accessor, data ID accessors
   items.forEach(item => {
-    categoryItems[item.category].dict[item.id] = item;
+    categoryItems[getCategory(item)].dict[getId(item)] = item;
   });
   //TODO: Use span accessor, data ID accessors
   forOwn(categoryItems, r => {
     values(r.dict).forEach(item => {
-      let noOverlap = [...item.timespan];
+      let noOverlap = [...getTimespan(item)];
       noOverlap[0] += 1*1e-9;
       noOverlap[1] -= 1*1e-9;
-      r.tree.insert(...noOverlap, item.id)
+      r.tree.insert(...noOverlap, getId(item))
     });
   });
 
@@ -66,7 +65,15 @@ function getCategoryIdMap(categoryIds, items) {
   return categoryItems;
 }
 
-export default function TimespanLayer({items, onUpdateCategory=null, onUpdateTime=null, timestep}) {
+export default function TimespanLayer({
+  items,
+  onUpdateCategory=null,
+  onUpdateTime=null,
+  timestep,
+  getCategory=item=>item.category,
+  getId=item=>item.id,
+  getTimespan=item=>item.timespan,
+}) {
   const {
     categoryOrder,
     categoryHeights,
@@ -74,7 +81,7 @@ export default function TimespanLayer({items, onUpdateCategory=null, onUpdateTim
   } = React.useContext(Context);
   const [hoverCategory, setHoverCategory] = React.useState(null);
   const byCategoryIds = React.useMemo(() => (
-      getCategoryIdMap(categoryOrder, items)
+      getCategoryIdMap(categoryOrder, items, getCategory, getId, getTimespan)
     ),
     [categoryOrder,items]
   );
@@ -105,16 +112,16 @@ export default function TimespanLayer({items, onUpdateCategory=null, onUpdateTim
     }
     {
       items.map(d => {
-        const interOffset = offsetsByCat[d.category];
-        const intraOffset = byCategoryIds[d.category].levels[d.id] * 30;
+        const interOffset = offsetsByCat[getCategory(d)];
+        const intraOffset = byCategoryIds[getCategory(d)].levels[getId(d)] * 30;
         return (
           <Item
-            key={d.id}
+            key={getId(d)}
             data={d}
             offset={interOffset + intraOffset + 'px'}
             onUpdate={(span,data) => onUpdateImpl(span, data)}
             timestep={timestep}
-            onMouseEnter={() => setHoverCategory(d.category, offsetsByCat[d.category])}
+            onMouseEnter={() => setHoverCategory(getCategory(d), offsetsByCat[getCategory(d)])}
           />
         );
       })

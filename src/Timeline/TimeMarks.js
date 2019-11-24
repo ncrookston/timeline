@@ -12,13 +12,15 @@ const useStyles = makeStyles({
   },
 });
 
-export default function TimeMarks({markStep=1}) {
+export default function TimeMarks({labelMarks}) {
   const classes = useStyles();
   const {
     timeStart,
     timePerPx,
     containerWidthPx,
   } = React.useContext(Context);
+
+  const {markStep} = labelMarks(timePerPx);
 
   const pxStart = (Math.floor(timeStart / markStep) * markStep - timeStart) / timePerPx;
   const pxEnd = pxStart + containerWidthPx;

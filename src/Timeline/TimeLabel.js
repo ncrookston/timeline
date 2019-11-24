@@ -13,14 +13,13 @@ const useStyles = makeStyles({
     boxSizing: 'border-box',
   },
   label: {
-    top: 0,
     position: 'absolute',
     borderRight: '1px solid red',
     boxSizing: 'border-box',
   }
 });
 
-export function TopTimeLabel({markStep=1}) {
+export function TimeLabel({style, height, labelMarks}) {
   const classes = useStyles();
   const {
     timeStart,
@@ -32,9 +31,7 @@ export function TopTimeLabel({markStep=1}) {
     setHeaderHeightPx,
   } = React.useContext(Context);
 
-  const height = 30;
-  if (headerHeightPx !== height)
-    setHeaderHeightPx(height);
+  const {markStep, label} = labelMarks(timePerPx);
 
   //Which time block is leftmost?
   const stepTimeStart = Math.floor(timeStart / markStep) * markStep;
@@ -48,6 +45,7 @@ export function TopTimeLabel({markStep=1}) {
     <div
       className={classes.labelContainer}
       style={{
+        ...style,
         left: leftSidebarWidthPx,
         width: pxFullWidth,
         height: height+'px'
@@ -60,14 +58,40 @@ export function TopTimeLabel({markStep=1}) {
           <div
             key={time}
             className={classes.label}
-            style={{left, height: height+'px', width: pxWidth}}
+            style={{...style, left, height: height+'px', width: pxWidth}}
           >
-          H{time}
+          {label} {time / markStep}
           </div>
         );
       })
     }
     </div>
   );
+}
+
+export function TopTimeLabel({labelMarks}) {
+  const {
+    headerHeightPx,
+    setHeaderHeightPx,
+  } = React.useContext(Context);
+
+  const height = 30;
+  if (headerHeightPx !== height)
+    setHeaderHeightPx(height);
+
+  return <TimeLabel style={{top: 0}} height={height} labelMarks={labelMarks} />;
+}
+
+export function BottomTimeLabel({labelMarks}) {
+  const {
+    footerHeightPx,
+    setFooterHeightPx,
+  } = React.useContext(Context);
+
+  const height = 30;
+  if (footerHeightPx !== height)
+    setFooterHeightPx(height);
+
+  return <TimeLabel style={{bottom: 0}} height={height} labelMarks={labelMarks} />;
 }
 

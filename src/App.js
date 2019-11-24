@@ -8,7 +8,7 @@ import Timeline from './Timeline';
 import TimeMarks from './Timeline/TimeMarks';
 import MouseControlCanvas from './Timeline/MouseControlCanvas';
 import {LeftSidebar,RightSidebar} from './Timeline/Sidebar';
-import {TopTimeLabel} from './Timeline/TimeLabel';
+import {TopTimeLabel,BottomTimeLabel} from './Timeline/TimeLabel';
 import TimespanLayer from './Timeline/TimespanLayer';
 
 const useStyles = makeStyles({
@@ -66,6 +66,17 @@ const initialData = [
   },
 ];
 
+function getHourDayMarks(timePerPx, minPx) {
+  const pxPerTime = 1 / timePerPx;
+  let markStep = 1;
+  let label = 'Hour';
+  if (pxPerTime < minPx) {
+    markStep = 24;
+    label = 'Day';
+  }
+  return {markStep, label};
+}
+
 export default function App() {
   const [data, setData] = React.useState(initialData);
   const classes = useStyles();
@@ -89,13 +100,14 @@ export default function App() {
       <Timeline
         initialTimespan={[0,10]}
         categoryOrder={['c','a','b']}
-        header={TopTimeLabel}
+        maxTime={240}
       >
+        <TopTimeLabel labelMarks={tpp => getHourDayMarks(tpp,60)} />
         <LeftSidebar
           categoryInfo={categories}
         />
         <MouseControlCanvas>
-          <TimeMarks markStep={2} />
+          <TimeMarks labelMarks={tpp => getHourDayMarks(tpp,30)} />
           <TimespanLayer
             items={data}
             onUpdateTime={onItemUpdateTime}

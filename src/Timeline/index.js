@@ -108,10 +108,12 @@ export default function Timeline({
           categoryHeights: categoryHeights.max,
           setCategoryHeights,
           categoryOrder,
+
           leftSidebarWidthPx,
           setLeftSidebarWidthPx,
           rightSidebarWidthPx,
           setRightSidebarWidthPx,
+
           headerHeightPx,
           setHeaderHeightPx,
           footerHeightPx,
@@ -126,9 +128,7 @@ export default function Timeline({
           maxTime,
         }}
       >
-        {header && <Header />}
         {children}
-        {footer && <Footer />}
       </Context.Provider>
     </div>
   );
