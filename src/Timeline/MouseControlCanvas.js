@@ -50,7 +50,7 @@ export default function MouseControlLayer({children}) {
     const elem = ref.current;
     elem.addEventListener('wheel', onWheel, {passive: false});
     return () => elem.removeEventListener('wheel',onWheel);
-  }, [ref,setTimeStart,setTimePerPx,leftSidebarWidthPx,timePerPx,timeStart]);
+  }, [ref,setTimeStart,setTimePerPx,leftSidebarWidthPx,timePerPx,timeStart,containerWidthPx,maxTime,minTime]);
 
   const panListeners = usePan({onDrag});
   const classes = useStyles();

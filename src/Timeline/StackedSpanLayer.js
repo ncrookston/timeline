@@ -16,6 +16,7 @@ const useStyles = makeStyles({
     top: 0,
     borderBottom: '1px solid orange',
     boxSizing: 'border-box',
+    pointerEvents: 'none',
   },
   canvas: {
     position: 'absolute',
@@ -65,7 +66,7 @@ function getCategoryIdMap(categoryIds, items, getCategory, getId, getTimespan) {
   return categoryItems;
 }
 
-export default function TimespanLayer({
+export default function StackedSpanLayer({
   items,
   onUpdateCategory=null,
   onUpdateTime=null,
@@ -83,10 +84,10 @@ export default function TimespanLayer({
   const byCategoryIds = React.useMemo(() => (
       getCategoryIdMap(categoryOrder, items, getCategory, getId, getTimespan)
     ),
-    [categoryOrder,items]
+    [getCategory,getId,getTimespan,categoryOrder,items]
   );
   setCategoryHeights('timepsan', mapValues(byCategoryIds, obj =>
-    30 * (max(concat(0,values(obj.levels))) + 1)
+    40 * (max(concat(0,values(obj.levels))) + 1)
   ));
   const offsets = getOrderedOffsets(categoryOrder, categoryHeights);
   const offsetsByCat = fromPairs(zip(categoryOrder, initial(offsets)));
@@ -98,6 +99,7 @@ export default function TimespanLayer({
   const classes = useStyles();
   return (<>
     {
+      /*TODO: This probably belongs in a lower layer */
       categoryOrder.map(categoryId => (
         <div
           key={categoryId}
@@ -113,12 +115,12 @@ export default function TimespanLayer({
     {
       items.map(d => {
         const interOffset = offsetsByCat[getCategory(d)];
-        const intraOffset = byCategoryIds[getCategory(d)].levels[getId(d)] * 30;
+        const intraOffset = byCategoryIds[getCategory(d)].levels[getId(d)] * 40;
         return (
           <Item
             key={getId(d)}
             data={d}
-            offset={interOffset + intraOffset + 'px'}
+            offset={interOffset + intraOffset}
             onUpdate={(span,data) => onUpdateImpl(span, data)}
             timestep={timestep}
             onMouseEnter={() => setHoverCategory(getCategory(d), offsetsByCat[getCategory(d)])}

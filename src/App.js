@@ -9,7 +9,9 @@ import TimeMarks from './Timeline/TimeMarks';
 import MouseControlCanvas from './Timeline/MouseControlCanvas';
 import {LeftSidebar,RightSidebar} from './Timeline/Sidebar';
 import {TopTimeLabel,BottomTimeLabel} from './Timeline/TimeLabel';
-import TimespanLayer from './Timeline/TimespanLayer';
+
+import FullSpanLayer from './Timeline/FullSpanLayer';
+import StackedSpanLayer from './Timeline/StackedSpanLayer';
 
 const useStyles = makeStyles({
   root: {
@@ -66,6 +68,19 @@ const initialData = [
   },
 ];
 
+const classItems = [
+  {
+    id: 'c1',
+    timespan: [1, 3],
+    category: 'a'
+  },
+  {
+    id: 'c2',
+    timespan: [5, 9],
+    category: 'a'
+  },
+];
+
 function getHourDayMarks(timePerPx, minPx) {
   const pxPerTime = 1 / timePerPx;
   let markStep = 1;
@@ -79,8 +94,10 @@ function getHourDayMarks(timePerPx, minPx) {
 
 export default function App() {
   const [data, setData] = React.useState(initialData);
+  const [bgData, setBgData] = React.useState(classItems);
   const classes = useStyles();
   const id_to_idx = reduce(data, (obj, datum, i) => ({...obj, [datum.id]: i}), {});
+  const bg_id_to_idx = reduce(bgData, (obj, datum, i) => ({...obj, [datum.id]: i}), {});
 
   const onItemUpdateTime = (newSpan, datum) => {
     //Ignore invalid spans
@@ -93,6 +110,13 @@ export default function App() {
   const onUpdateCategory = (category, datum) => {
     setData(produce(data, draft => {
       draft[id_to_idx[datum.id]].category = category;
+    }));
+  };
+  const onUpdateBg = (newSpan, datum) => {
+    if (newSpan[0] >= newSpan[1])
+      return;
+    setBgData(produce(bgData, draft => {
+      draft[bg_id_to_idx[datum.id]].timespan = newSpan;
     }));
   };
   return (
@@ -108,7 +132,12 @@ export default function App() {
         />
         <MouseControlCanvas>
           <TimeMarks labelMarks={tpp => getHourDayMarks(tpp,30)} />
-          <TimespanLayer
+          <FullSpanLayer
+            items={bgData}
+            onUpdateTime={onUpdateBg}
+            timestep={1}
+          />
+          <StackedSpanLayer
             items={data}
             onUpdateTime={onItemUpdateTime}
             onUpdateCategory={onUpdateCategory}

@@ -86,7 +86,7 @@ export default function Item({data, offset, onUpdate, timestep, onMouseEnter}) {
     //const button = evt.target.parentElement;
   };
   const style = {
-    top: offset,
+    top: offset + 7 + 'px',
     left,
     width,
   };
