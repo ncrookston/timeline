@@ -9,6 +9,7 @@ const useStyles = makeStyles({
     position: 'absolute',
     borderRight: '1px solid blue',
     boxSizing: 'border-box',
+    pointerEvents: 'none',
   },
 });
 

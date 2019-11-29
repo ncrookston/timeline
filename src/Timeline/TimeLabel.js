@@ -25,10 +25,8 @@ export function TimeLabel({style, height, labelMarks}) {
     timeStart,
     timePerPx,
     containerWidthPx,
-    headerHeightPx,
     leftSidebarWidthPx,
     rightSidebarWidthPx,
-    setHeaderHeightPx,
   } = React.useContext(Context);
 
   const {markStep, label} = labelMarks(timePerPx);

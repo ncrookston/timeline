@@ -27,8 +27,8 @@ export function useDraggable({onStart, onDrag, onClick=null}) {
         const diff = ptDiff(evt,firstMouse);
         if (diff[0] * diff[0] + diff[1] + diff[1] > 10)
           setDidMove(true);
+        onDrag(evt, {hasMoved: didMove, offset: diff, delta: ptDiff(evt, lastMouse)});
         if (didMove) {
-          onDrag(evt, {offset: diff, delta: ptDiff(evt, lastMouse)});
           setLastMouse(getPt(evt));
         }
       }
@@ -90,7 +90,8 @@ export function LeftResizable({onResize, size, minSize}) {
     <Draggable
       onStart={() => setSavedSize(size)}
       onDrag={(evt,info) => {
-        onResize(Math.max(minSize, savedSize - info.offset[0]))
+        if (info.hasMoved)
+          onResize(Math.max(minSize, savedSize - info.offset[0]))
       }}
       cursor='col-resize'
     />
@@ -104,9 +105,11 @@ export function RightResizable({onResize, size, minSize}) {
     <Draggable
       onStart={() => setSavedSize(size)}
       onDrag={(evt,info) => {
-        onResize(Math.max(minSize, savedSize + info.offset[0]))
+        if (info.hasMoved)
+          onResize(Math.max(minSize, savedSize + info.offset[0]))
       }}
       cursor='col-resize'
     />
   );
 }
+

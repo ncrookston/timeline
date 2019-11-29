@@ -27,8 +27,6 @@ export default function Timeline({
   categoryOrder,
   minTime=1/3600,
   maxTime=365*24,
-  header=null,
-  footer=null,
   children
 }) {
 
@@ -96,9 +94,6 @@ export default function Timeline({
     return () => obs.unobserve(curRef);
   }, [containerWidthPx,leftSidebarWidthPx,rightSidebarWidthPx,timePerPx,setTimePerPx]);
   const height = last(getOrderedOffsets(categoryOrder, categoryHeights.max)) + headerHeightPx + footerHeightPx;
-  const width = containerWidthPx - leftSidebarWidthPx - rightSidebarWidthPx;
-  const Header = header;
-  const Footer = footer;
   const classes = useStyles();
   return (
     <div ref={containerRef} className={classes.outer} style={{height: height+'px'}}>

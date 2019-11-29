@@ -5,10 +5,11 @@ import {produce} from 'immer';
 import {reduce} from 'lodash';
 
 import Timeline from './Timeline';
+import CategoryMarks from './Timeline/CategoryMarks';
 import TimeMarks from './Timeline/TimeMarks';
 import MouseControlCanvas from './Timeline/MouseControlCanvas';
-import {LeftSidebar,RightSidebar} from './Timeline/Sidebar';
-import {TopTimeLabel,BottomTimeLabel} from './Timeline/TimeLabel';
+import {LeftSidebar} from './Timeline/Sidebar';
+import {TopTimeLabel} from './Timeline/TimeLabel';
 
 import FullSpanLayer from './Timeline/FullSpanLayer';
 import StackedSpanLayer from './Timeline/StackedSpanLayer';
@@ -132,6 +133,7 @@ export default function App() {
         />
         <MouseControlCanvas>
           <TimeMarks labelMarks={tpp => getHourDayMarks(tpp,30)} />
+          <CategoryMarks />
           <FullSpanLayer
             items={bgData}
             onUpdateTime={onUpdateBg}

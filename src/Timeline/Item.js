@@ -39,54 +39,61 @@ const useStyles = makeStyles({
   },
 });
 
-export default function Item({data, offset, onUpdate, timestep, onMouseEnter}) {
+export default function Item({
+  datum,
+  categoryHeight,
+  offset,
+  onUpdate,
+  timestep,
+}) {
   const {
     timeStart,
     timePerPx,
   } = React.useContext(Context);
+  const subOffset = 7;
+  const itemRef = React.useRef();
   const [isSelected, setIsSelected] = React.useState(false);
   const [didDrag, setDidDrag] = React.useState(false);
   const [initialTime, setInitialTime] = React.useState(null);
   const snap = time => timestep ? timestep * Math.round(time / timestep) : time;
   const onDrag = (evt,info) => {
-    const new0 = initialTime + snap(timePerPx * info.offset[0]);
-    const new1 = new0 + data.timespan[1] - data.timespan[0];
-    onUpdate([new0, new1], data);
-    setDidDrag(true);
+    let newSpan = [...datum.timespan];
+    if (info.hasMoved) {
+      const new0 = initialTime + snap(timePerPx * info.offset[0]);
+      newSpan = [new0, new0 + datum.timespan[1] - datum.timespan[0]];
+    }
+    //TODO: Will this need scrollY?
+    const canvasRel = evt.clientY - itemRef.current.getBoundingClientRect().y + subOffset + offset;
+    onUpdate(newSpan, datum, canvasRel);
+    setDidDrag(info.hasMoved);
   };
-  const onStart = () => setInitialTime(data.timespan[0]);
+  const onStart = () => setInitialTime(datum.timespan[0]);
   const panListeners = usePan({onDrag, onStart});
   const toPx = t => (t - timeStart) / timePerPx;
   //TODO: Data accessors (timespan):
   //TODO: Expose an interface for replacing the renderers for sub-items.
   //TODO: Allow styles to be overriden the same way as material-ui
-  const left = toPx(data.timespan[0]) - 1;
-  const width = toPx(data.timespan[1]) - left - 2;
+  const left = toPx(datum.timespan[0]) - 1;
+  const width = toPx(datum.timespan[1]) - left - 2;
   const onResize = (newSizePx,side) => {
-    let newSpan = [...data.timespan];
+    let newSpan = [...datum.timespan];
     if (side === 'left')
       newSpan[0] = newSpan[1] - snap(newSizePx * timePerPx);
     else
       newSpan[1] = newSpan[0] + snap(newSizePx * timePerPx);
     if (newSpan[0] > newSpan[1])
       newSpan[1] = newSpan[0];
-    onUpdate(newSpan, data);
+    onUpdate(newSpan, datum, null);
   };
-//  const focusButton = button => {
-//    button.blur();
-//    button.ownerDocument.dispatchEvent(new window.Event('keydown'));
-//    button.focus();
-//  };
   const onClick = evt => {
     if (!didDrag)
       setIsSelected(!isSelected);
     else
       setIsSelected(true);
     setDidDrag(false);
-    //const button = evt.target.parentElement;
   };
   const style = {
-    top: offset + 7 + 'px',
+    top: offset + subOffset + 'px',
     left,
     width,
   };
@@ -95,9 +102,9 @@ export default function Item({data, offset, onUpdate, timestep, onMouseEnter}) {
   };
   const classes = useStyles();
   return (
-    <div className={classes.inner} style={style} {...panListeners} onMouseEnter={onMouseEnter}>
+    <div ref={itemRef} className={classes.inner} style={style} {...panListeners}>
       <Button className={classes.button} variant="contained" onClick={onClick}>
-        {data.id}
+        {datum.id}
       </Button>
       <div
         style={rStyle}

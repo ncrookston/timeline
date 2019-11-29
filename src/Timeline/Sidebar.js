@@ -44,7 +44,7 @@ export function Sidebar({categoryInfo, initialSidebarWidth, isLeft}) {
     setSidebarWidthPx(initialSidebarWidth);
 
   const offsets = getOrderedOffsets(categoryOrder, categoryHeights);
-  const fullHeight = headerHeightPx + offsets[offsets.length-1];
+  const fullHeight = headerHeightPx + offsets[offsets.length-1] + footerHeightPx;
 
   const onResize = widthPx => {
     const newSideWidth = Math.min(widthPx, containerWidthPx - otherWidthPx);

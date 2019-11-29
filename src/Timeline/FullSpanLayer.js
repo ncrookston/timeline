@@ -1,13 +1,11 @@
 import React from 'react';
 import {makeStyles} from '@material-ui/core/styles';
 
-import IntervalTree from 'node-interval-tree';
-import {concat, find, forOwn, fromPairs, initial, mapValues, max, range, reduce, values, zip} from 'lodash';
+import {fromPairs, initial, zip} from 'lodash';
 
 import getOrderedOffsets from './getOrderedOffsets';
 import Context from './Context';
-import Item from './Item';
-import {LeftResizable,RightResizable,usePan} from './Draggable';
+import {LeftResizable,RightResizable} from './Draggable';
 
 const useStyles = makeStyles({
   item: {
