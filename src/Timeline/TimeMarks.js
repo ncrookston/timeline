@@ -16,14 +16,15 @@ const useStyles = makeStyles({
 export default function TimeMarks({labelMarks}) {
   const classes = useStyles();
   const {
-    timeStart,
+    timespan,
     timePerPx,
+    timeToPx,
     containerWidthPx,
   } = React.useContext(Context);
 
   const {markStep} = labelMarks(timePerPx);
 
-  const pxStart = (Math.floor(timeStart / markStep) * markStep - timeStart) / timePerPx;
+  const pxStart = timeToPx(Math.floor(timespan[0] / markStep) * markStep);
   const pxEnd = pxStart + containerWidthPx;
   const pxWidth = markStep / timePerPx;
   return range(pxStart, pxEnd, pxWidth).map((left,idx) => (

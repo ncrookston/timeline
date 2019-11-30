@@ -22,7 +22,7 @@ const useStyles = makeStyles({
 export function TimeLabel({style, height, labelMarks}) {
   const classes = useStyles();
   const {
-    timeStart,
+    timespan,
     timePerPx,
     containerWidthPx,
     leftSidebarWidthPx,
@@ -32,7 +32,7 @@ export function TimeLabel({style, height, labelMarks}) {
   const {markStep, label} = labelMarks(timePerPx);
 
   //Which time block is leftmost?
-  const stepTimeStart = Math.floor(timeStart / markStep) * markStep;
+  const stepTimeStart = Math.floor(timespan[0] / markStep) * markStep;
   const pxFullWidth = containerWidthPx - leftSidebarWidthPx - rightSidebarWidthPx;
   const timeFullWidth = pxFullWidth * timePerPx;
   //Which time block is rightmost?
@@ -50,8 +50,8 @@ export function TimeLabel({style, height, labelMarks}) {
       }}
     >
     {
-      range(stepTimeStart, stepTimeEnd, markStep).map((time) => {
-        const left = (time - timeStart) / timePerPx;
+      range(stepTimeStart, stepTimeEnd, markStep).map(time => {
+        const left = (time - timespan[0]) / timePerPx;
         return (
           <div
             key={time}

@@ -18,7 +18,7 @@ export default function MouseControlLayer({children}) {
     containerWidthPx,
     maxTime,
     minTime,
-    timeStart,
+    timespan,
     setTimeStart,
     timePerPx,
     setTimePerPx,
@@ -28,7 +28,7 @@ export default function MouseControlLayer({children}) {
     footerHeightPx,
   } = React.useContext(Context);
   const onDrag = (evt, info) => {
-    setTimeStart(timeStart - info.delta[0] * timePerPx);
+    setTimeStart(timespan[0] - info.delta[0] * timePerPx);
   };
   const ref = React.useRef();
   React.useLayoutEffect(() => {
@@ -43,14 +43,14 @@ export default function MouseControlLayer({children}) {
           newTPP = Math.max(newTPP, minTime / containerWidthPx);
         setTimePerPx(newTPP);
         const off = evt.clientX - ref.current.getBoundingClientRect().left;
-        const fixedTimePt = off * timePerPx + timeStart;
+        const fixedTimePt = off * timePerPx + timespan[0];
         setTimeStart(fixedTimePt - newTPP * off);
       }
     };
     const elem = ref.current;
     elem.addEventListener('wheel', onWheel, {passive: false});
     return () => elem.removeEventListener('wheel',onWheel);
-  }, [ref,setTimeStart,setTimePerPx,leftSidebarWidthPx,timePerPx,timeStart,containerWidthPx,maxTime,minTime]);
+  }, [ref,setTimeStart,setTimePerPx,leftSidebarWidthPx,timePerPx,timespan,containerWidthPx,maxTime,minTime]);
 
   const panListeners = usePan({onDrag});
   const classes = useStyles();

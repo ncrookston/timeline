@@ -24,17 +24,18 @@ export default function TimeMarks({labelMarks}) {
 
   const offsets = getOrderedOffsets(categoryOrder, categoryHeights);
   return (
-    offsets.map((offset,idx) => (
+    categoryOrder.map((category,idx) => {
+      return (
       <div
-        key={categoryOrder[idx]}
+        key={category}
         className={classes.category}
         style={{
-          top: offset + 'px',
-          height: categoryHeights[categoryOrder[idx]] + 'px',
+          top: offsets[idx] + 'px',
+          height: categoryHeights[category] + 'px',
           width: containerWidthPx + 'px',
         }}
       />
-    ))
+    )})
   );
 }
 

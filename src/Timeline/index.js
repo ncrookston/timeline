@@ -41,18 +41,14 @@ export default function Timeline({
   });
   const [leftSidebarWidthPx, setLeftSidebarWidthPx] = React.useState(0);
   const [rightSidebarWidthPx, setRightSidebarWidthPx] = React.useState(0);
-  const [timeStart, dosetTimeStart] = React.useState(initialTimespan[0]);
-  const [timeEnd, setTimeEnd] = React.useState(initialTimespan[1]);
-  const [timePerPx, dosetTimePerPx] = React.useState(initialTimespan[1] - initialTimespan[0]);
-  const setTimePerPx = React.useCallback(timePP => {
-    dosetTimePerPx(timePP);
-  }, [dosetTimePerPx]);
-  const setTimeStart = newTimeStart => {
-    dosetTimeStart(newTimeStart);
-    setTimeEnd(newTimeStart + timePerPx *
-      (containerWidthPx - leftSidebarWidthPx - rightSidebarWidthPx)
-    );
-  };
+  const [timeStart, setTimeStart] = React.useState(initialTimespan[0]);
+  const [timePerPx, setTimePerPx] = React.useState(initialTimespan[1] - initialTimespan[0]);
+  const timespan = [
+    timeStart,
+    timeStart + timePerPx * (containerWidthPx - leftSidebarWidthPx - rightSidebarWidthPx)
+  ];
+  const toPx = t => (t - timeStart) / timePerPx;
+  const timeToPx = time => Array.isArray(time) ? time.map(toPx) : toPx(time);
   const setCategoryHeights = (newLayerId, heightMap) => {
     if (!categoryHeights.layers[newLayerId]
         || !isEqual(categoryHeights.layers[newLayerId], heightMap)) {
@@ -114,9 +110,9 @@ export default function Timeline({
           footerHeightPx,
           setFooterHeightPx,
 
-          timeStart,
+          timespan,
+          timeToPx,
           setTimeStart,
-          timeEnd,
           timePerPx,
           setTimePerPx,
           minTime,

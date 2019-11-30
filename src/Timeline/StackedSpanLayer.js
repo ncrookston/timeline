@@ -1,48 +1,53 @@
 import React from 'react';
+import { makeStyles } from '@material-ui/core/styles';
+import Button from '@material-ui/core/Button';
 
 import IntervalTree from 'node-interval-tree';
-import {concat, find, forOwn, fromPairs, initial, mapValues, max, range, reduce, sortedLastIndex, values, zip} from 'lodash';
+import {concat, find, fromPairs, initial, mapValues, max, range, reduce, sortedLastIndex, values, zip} from 'lodash';
 
 import getOrderedOffsets from './getOrderedOffsets';
 import Context from './Context';
 import Item from './Item';
 
+const useStyles = makeStyles({
+  button: {
+    width: '100%',
+    height: '100%',
+    margin: 0,
+    padding: 0,
+    boxShadow: 'none',
+    top: 0,
+    minWidth: '1px',
+    minHeight: '1px',
+  },
+});
 function getCategoryIdMap(categoryIds, items, getCategory, getId, getTimespan) {
   let categoryItems = fromPairs(categoryIds.map(categoryId => [
-    categoryId, {
-      dict: {},
-      tree: new IntervalTree(),
-      levels: {},
-    }
+    categoryId, {list: [], tree: new IntervalTree()}
   ]));
 
   items.forEach(item => {
-    categoryItems[getCategory(item)].dict[getId(item)] = item;
-  });
-  forOwn(categoryItems, r => {
-    values(r.dict).forEach(item => {
-      let noOverlap = [...getTimespan(item)];
-      noOverlap[0] += 1*1e-9;
-      noOverlap[1] -= 1*1e-9;
-      r.tree.insert(...noOverlap, getId(item))
-    });
+    let noOverlap = [...getTimespan(item)];
+    noOverlap[0] += 1*1e-9;
+    noOverlap[1] -= 1*1e-9;
+    categoryItems[getCategory(item)].list.push(item);
+    categoryItems[getCategory(item)].tree.insert(...noOverlap, getId(item));
   });
 
-  forOwn(categoryItems, r => {
+  return mapValues(categoryItems, obj => {
     //For each category, find a level for each item that prevents overlap.
-    r.levels = reduce(r.dict, (res, item, itemId) => {
+    return reduce(obj.list, (res, item) => {
       //For each item in this category, find any overlapping items. Create a set of
       // each items' level (if assigned).
-      const shared = fromPairs(r.tree.search(...item.timespan).map(id => [res[id],true]));
+      const shared = fromPairs(obj.tree.search(...getTimespan(item)).map(id => [res[id],true]));
       //Then, find the smallest level that is not currently assigned and assign that
       // as itemId's level.
       return {
         ...res,
-        [itemId]: find(range(0,r.tree.count), lvl => shared[lvl] === undefined)
+        [getId(item)]: find(range(0,obj.list.length), lvl => shared[lvl] === undefined)
       };
     }, {});
   });
-  return categoryItems;
 }
 
 export default function StackedSpanLayer({
@@ -64,14 +69,15 @@ export default function StackedSpanLayer({
     ),
     [getCategory,getId,getTimespan,categoryOrder,items]
   );
-  const rowWidth = 40;
+  const rowHeight = 40;
   setCategoryHeights('StackedSpanLayer', mapValues(byCategoryIds, obj =>
-    rowWidth * (max(concat(0,values(obj.levels))) + 1)
+    rowHeight * (max(concat(0,values(obj))) + 1)
   ));
   const offsets = getOrderedOffsets(categoryOrder, categoryHeights);
   const offsetsByCat = fromPairs(zip(categoryOrder, initial(offsets)));
   const onUpdateImpl = (timespan, datum, canvasY) => {
-    onUpdateTime(timespan, datum);
+    if (onUpdateTime)
+      onUpdateTime(timespan, datum);
 
     if (onUpdateCategory && canvasY !== null) {
       const idx = Math.min(sortedLastIndex(offsets, canvasY), categoryOrder.length) - 1;
@@ -80,20 +86,29 @@ export default function StackedSpanLayer({
         onUpdateCategory(newCat, datum);
     }
   };
+  const classes = useStyles();
   return (<>
     {
       items.map(d => {
         const categoryOffset = offsetsByCat[getCategory(d)];
-        const categoryHeight = categoryHeights[getCategory(d)];
-        const itemOffset = byCategoryIds[getCategory(d)].levels[getId(d)] * rowWidth;
+        const itemOffset = byCategoryIds[getCategory(d)][getId(d)] * rowHeight;
+        //TODO: Expose an interface for replacing the renderers for sub-items.
+        //TODO: Allow styles to be overriden the same way as material-ui
         return (
           <Item
             key={getId(d)}
             datum={d}
-            offset={categoryOffset + itemOffset}
-            categoryHeight={categoryHeight}
+            getId={getId}
+            getTimespan={getTimespan}
+            yOffset={categoryOffset + itemOffset + 5}
+            height={rowHeight - 10}
             onUpdate={onUpdateImpl}
             timestep={timestep}
+            children={datum => (
+              <Button className={classes.button} variant="contained">
+                {datum.id}
+              </Button>
+            )}
           />
         );
       })

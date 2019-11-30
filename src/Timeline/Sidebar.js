@@ -29,7 +29,7 @@ export function Sidebar({categoryInfo, initialSidebarWidth, isLeft}) {
     rightSidebarWidthPx, setRightSidebarWidthPx,
     headerHeightPx, footerHeightPx,
     containerWidthPx,
-    timeStart,
+    timespan,
     setTimeStart,
     timePerPx,
   } = React.useContext(Context);
@@ -50,7 +50,7 @@ export function Sidebar({categoryInfo, initialSidebarWidth, isLeft}) {
     const newSideWidth = Math.min(widthPx, containerWidthPx - otherWidthPx);
     setSidebarWidthPx(newSideWidth);
     if (isLeft) {
-      const newTime = timeStart - (sidebarWidthPx - newSideWidth) * timePerPx;
+      const newTime = timespan[0] - (sidebarWidthPx - newSideWidth) * timePerPx;
       setTimeStart(newTime);
     }
   };
