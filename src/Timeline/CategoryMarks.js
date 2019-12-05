@@ -1,25 +1,35 @@
 import React from 'react';
-import {makeStyles} from '@material-ui/core/styles';
+import {withStyles} from '@material-ui/core/styles';
+import clsx from 'clsx';
 
 import getOrderedOffsets from './getOrderedOffsets';
 import Context from './Context';
 
-const useStyles = makeStyles({
+export const styles = theme => ({
   category: {
     left: 0,
     position: 'absolute',
-    borderBottom: '1px solid orange',
     boxSizing: 'border-box',
     pointerEvents: 'none',
   },
+  category0: {
+    backgroundColor: '#eee',
+  },
+  category1: {
+    backgroundColor: '#fff',
+  },
 });
 
-export default function TimeMarks({labelMarks}) {
-  const classes = useStyles();
+function CategoryMarks(props) {
+  const {
+    classes,
+    className,
+  } = props;
   const {
     categoryHeights,
     categoryOrder,
     containerWidthPx,
+    patternSize = 2,
   } = React.useContext(Context);
 
   const offsets = getOrderedOffsets(categoryOrder, categoryHeights);
@@ -28,7 +38,7 @@ export default function TimeMarks({labelMarks}) {
       return (
       <div
         key={category}
-        className={classes.category}
+        className={clsx(classes.category, classes[`category${idx%patternSize}`], className)}
         style={{
           top: offsets[idx] + 'px',
           height: categoryHeights[category] + 'px',
@@ -38,4 +48,6 @@ export default function TimeMarks({labelMarks}) {
     )})
   );
 }
+
+export default withStyles(styles, {name: 'CrkCategoryMarks'})(CategoryMarks);
 

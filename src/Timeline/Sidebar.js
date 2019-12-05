@@ -1,14 +1,14 @@
 import React from 'react';
-import {makeStyles} from '@material-ui/core/styles';
+import {withStyles} from '@material-ui/core/styles';
+import clsx from 'clsx';
 
 import Context from './Context';
 import {LeftResizable,RightResizable} from './Draggable';
 import getOrderedOffsets from './getOrderedOffsets';
 
-const useStyles = makeStyles({
+export const styles = theme => ({
   category: {
     position: 'absolute',
-    borderTop: '1px solid red',
     boxSizing: 'border-box',
     paddingLeft: '10px',
   },
@@ -16,12 +16,26 @@ const useStyles = makeStyles({
     boxSizing: 'border-box',
     position: 'absolute',
     top: 0,
-    border: '1px solid green',
+    backgroundColor: '#0003',
+  },
+  category0: {
+    backgroundColor: '#eee',
+  },
+  category1: {
+    backgroundColor: '#fff',
   },
 });
 
-export function Sidebar({categoryInfo, initialSidebarWidth, isLeft}) {
-
+function SidebarImpl(props) {
+  //TODO: Use categoryInfo
+  const {
+    categoryInfo = null,
+    classes,
+    className,
+    initialSidebarWidth = 150,
+    isLeft,
+    patternSize = 2,
+  } = props;
   const {
     categoryOrder,
     categoryHeights,
@@ -54,13 +68,14 @@ export function Sidebar({categoryInfo, initialSidebarWidth, isLeft}) {
       setTimeStart(newTime);
     }
   };
-  const classes = useStyles();
   return (<>
     {
-      categoryOrder.map((categoryId,idx) => (
+      categoryOrder.map((categoryId,idx) => {
+          console.log(idx)
+          return (
         <div
           key={categoryId}
-          className={classes.category}
+          className={clsx(classes.category, classes[`category${idx%patternSize}`], className)}
           style={{
             ...sideStyle,
             top: headerHeightPx + offsets[idx] + 'px',
@@ -70,7 +85,7 @@ export function Sidebar({categoryInfo, initialSidebarWidth, isLeft}) {
         >
           {categoryId}
         </div>
-      ))
+      )})
     }
     <div
       className={classes.handle}
@@ -80,23 +95,18 @@ export function Sidebar({categoryInfo, initialSidebarWidth, isLeft}) {
     </div>
   </>);
 }
+export const Sidebar = withStyles(styles, {name: 'CrkSidebar' })(SidebarImpl);
 
-export function LeftSidebar({categoryInfo, initialSidebarWidth=150}) {
+function LeftSidebarImpl(props) {
   return (
-    <Sidebar
-      categoryInfo={categoryInfo}
-      initialSidebarWidth={initialSidebarWidth}
-      isLeft
-    />
+    <Sidebar {...props} isLeft />
   );
 }
+export const LeftSidebar = withStyles(styles, {name: 'CrkLeftSidebar' })(LeftSidebarImpl);
 
-export function RightSidebar({categoryInfo, initialSidebarWidth=150}) {
+function RightSidebarImpl(props) {
   return (
-    <Sidebar
-      categoryInfo={categoryInfo}
-      initialSidebarWidth={initialSidebarWidth}
-      isLeft={false}
-    />
+    <Sidebar {...props} isLeft={false} />
   );
 }
+export const RightSidebar = withStyles(styles, {name: 'CrkRightSidebar' })(RightSidebarImpl);

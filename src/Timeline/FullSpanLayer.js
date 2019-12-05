@@ -11,11 +11,13 @@ const useStyles = makeStyles({
   item: {
     width: '100%',
     height: '100%',
-    background: 'repeating-linear-gradient(45deg,#606dbc,#606dbc 10px,#465298 10px, #465298 20px)',
     boxSizing: 'border-box',
-    '&:hover': {
-      background: 'repeating-linear-gradient(45deg,#465298,#465298 10px,#606dbc 10px, #606dbc 20px)',
-    }
+    backgroundColor: '#73c2fb73',
+    border: '1px solid #9999',
+    //background: 'repeating-linear-gradient(45deg,#606dbc,#606dbc 10px,#465298 10px, #465298 20px)',
+    //'&:hover': {
+    //  background: 'repeating-linear-gradient(45deg,#465298,#465298 10px,#606dbc 10px, #606dbc 20px)',
+    //}
   },
 });
 export default function FullSpanLayer({
@@ -48,6 +50,8 @@ export default function FullSpanLayer({
             getTimespan={getTimespan}
             yOffset={offsetsByCat[getCategory(d)]}
             height={categoryHeights[getCategory(d)]}
+            onSelect={() => {}}
+            selected={true}
             onUpdate={onUpdateImpl}
             timestep={timestep}
           >

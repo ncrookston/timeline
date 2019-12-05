@@ -7,9 +7,10 @@ const useStyles = makeStyles({
   hash: {
     top: 0,
     position: 'absolute',
-    borderRight: '1px solid blue',
+    borderRight: '1px dotted #aaa',
     boxSizing: 'border-box',
     pointerEvents: 'none',
+    height: '100%',
   },
 });
 
@@ -22,7 +23,7 @@ export default function TimeMarks({labelMarks}) {
     containerWidthPx,
   } = React.useContext(Context);
 
-  const {markStep} = labelMarks(timePerPx);
+  const markStep = labelMarks(timePerPx)[0];
 
   const pxStart = timeToPx(Math.floor(timespan[0] / markStep) * markStep);
   const pxEnd = pxStart + containerWidthPx;
@@ -31,7 +32,7 @@ export default function TimeMarks({labelMarks}) {
     <div
       key={idx}
       className={classes.hash}
-      style={{left, width: pxWidth, height: '100%'}}
+      style={{left, width: pxWidth}}
     />
   ));
 }

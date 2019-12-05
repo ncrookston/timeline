@@ -1,19 +1,25 @@
 import React from 'react';
-import {makeStyles} from '@material-ui/core/styles';
+import {withStyles} from '@material-ui/core/styles';
+import PropTypes from 'prop-types';
 
 import Context from './Context';
 import {usePan} from './Draggable';
 
-const useStyles = makeStyles({
+export const styles = theme => ({
   root: {
     position: 'absolute',
     boxSizing: 'border-box',
     overflow: 'hidden',
-    border: '1px solid red',
+    borderTop: '1px dotted #000d',
   }
 });
 
-export default function MouseControlLayer({children}) {
+function MouseControlCanvas(props) {
+  const {
+    children,
+    classes
+  } = props;
+
   const {
     containerWidthPx,
     maxTime,
@@ -53,7 +59,6 @@ export default function MouseControlLayer({children}) {
   }, [ref,setTimeStart,setTimePerPx,leftSidebarWidthPx,timePerPx,timespan,containerWidthPx,maxTime,minTime]);
 
   const panListeners = usePan({onDrag});
-  const classes = useStyles();
   return (
     <div
       ref={ref}
@@ -71,3 +76,15 @@ export default function MouseControlLayer({children}) {
   );
 }
 
+MouseControlCanvas.propTypes = {
+  /**
+   * (Optional) Labels, Sidebars, and (Required) Canvas
+   */
+  children: PropTypes.node.isRequired,
+  /**
+   * Override or extend the styles applied to this component.
+   */
+  classes: PropTypes.object.isRequired,
+};
+
+export default withStyles(styles, {name: 'CrkMouseControlCanvas' })(MouseControlCanvas);

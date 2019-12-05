@@ -1,16 +1,16 @@
 import React from 'react';
 
-import { makeStyles } from '@material-ui/core/styles';
+import {withStyles} from '@material-ui/core/styles';
 
 import Context from './Context';
 import {LeftResizable,RightResizable,usePan} from './Draggable';
 
-const useStyles = makeStyles({
+export const styles = theme => ({
   inner: {
     position: 'absolute',
     boxSizing: 'border-box',
   },
-  left: {
+  leftResize: {
     position: 'absolute',
     left: 0,
     width: '3px',
@@ -18,7 +18,7 @@ const useStyles = makeStyles({
     height: '100%',
     backgroundColor: '#0002',
   },
-  right: {
+  rightResize: {
     position: 'absolute',
     right: 0,
     width: '3px',
@@ -28,15 +28,20 @@ const useStyles = makeStyles({
   },
 });
 
-export default function Item({
-  datum,
-  yOffset,
-  height,
-  onUpdate,
-  timestep,
-  getTimespan,
-  children,
-}) {
+function Item(props) {
+  const {
+    classes,
+    datum,
+    yOffset,
+    height,
+    onUpdate,
+    onSelect,
+    timestep,
+    getTimespan,
+    selected,
+    children,
+  } = props;
+
   const {
     timePerPx,
     timeToPx,
@@ -44,7 +49,6 @@ export default function Item({
   const [x0,x1] = timeToPx(getTimespan(datum));
   const width = x1 - x0 - 2;
   const itemRef = React.useRef();
-  const [isSelected, setIsSelected] = React.useState(false);
   const [didDrag, setDidDrag] = React.useState(false);
   const [initialTime, setInitialTime] = React.useState(null);
   const snap = time => timestep ? timestep * Math.round(time / timestep) : time;
@@ -61,12 +65,7 @@ export default function Item({
   };
   const onStart = () => setInitialTime(getTimespan(datum)[0]);
   const onClick = evt => {
-    //console.log(didDrag);
-    //console.log('onClick, didDrag ===', didDrag)
-    if (!didDrag)
-      setIsSelected(is => !is);
-    else
-      setIsSelected(true);
+    onSelect(didDrag || !selected);
     setDidDrag(false);
   };
   const panListeners = usePan({onDrag, onStart, onClick});
@@ -87,15 +86,14 @@ export default function Item({
     height: height+'px',
   };
   const rStyle = {
-    visibility: isSelected ? 'visible' : 'hidden',
+    visibility: selected ? 'visible' : 'hidden',
   };
-  const classes = useStyles();
   return (
     <div ref={itemRef} className={classes.inner} style={style} {...panListeners}>
       {children(datum)}
       <div
         style={rStyle}
-        className={classes.left}
+        className={classes.leftResize}
       >
         <LeftResizable
           size={width}
@@ -105,7 +103,7 @@ export default function Item({
       </div>
       <div
         style={rStyle}
-        className={classes.right}
+        className={classes.rightResize}
       >
         <RightResizable
           size={width}
@@ -117,3 +115,4 @@ export default function Item({
   );
 }
 
+export default withStyles(styles, {name: 'CrkItem' })(Item);

@@ -1,17 +1,18 @@
 import React from 'react';
 
-import {makeStyles} from '@material-ui/core/styles';
+import {withStyles} from '@material-ui/core/styles';
+import PropTypes from 'prop-types';
+import clsx from 'clsx';
 
 import {cloneDeep, fromPairs, isEqual, last, mapValues, reduce} from 'lodash';
 
 import getOrderedOffsets from './getOrderedOffsets';
 import Context from './Context';
 
-const useStyles = makeStyles({
+export const styles = theme => ({
   label: {
     boxSizing: 'border-box',
     position: 'relative',
-    border: '1px solid blue',
     height: '30px',
   },
   outer: {
@@ -22,13 +23,18 @@ const useStyles = makeStyles({
   },
 });
 
-export default function Timeline({
-  initialTimespan,//Need a sensible default...
-  categoryOrder,
-  minTime=1/3600,
-  maxTime=365*24,
-  children
-}) {
+function Timeline(props) {
+  const {
+    children,
+    initialTimespan,//Need a sensible default...
+    categoryOrder,
+    minTime = 1 / 3600,
+    maxTime = 365 * 24,
+    classes,
+    className,
+  } = props;
+
+
 
   const containerRef = React.useRef();
 
@@ -90,9 +96,8 @@ export default function Timeline({
     return () => obs.unobserve(curRef);
   }, [containerWidthPx,leftSidebarWidthPx,rightSidebarWidthPx,timePerPx,setTimePerPx]);
   const height = last(getOrderedOffsets(categoryOrder, categoryHeights.max)) + headerHeightPx + footerHeightPx;
-  const classes = useStyles();
   return (
-    <div ref={containerRef} className={classes.outer} style={{height: height+'px'}}>
+    <div ref={containerRef} className={clsx(classes.outer, className)} style={{height: height+'px'}}>
       <Context.Provider
         value={{
           containerWidthPx,
@@ -124,4 +129,40 @@ export default function Timeline({
     </div>
   );
 }
+
+Timeline.propTypes = {
+  /**
+   * (Optional) Labels, Sidebars, and (Required) Canvas
+   */
+  children: PropTypes.node.isRequired,
+  /**
+   * Override or extend the styles applied to this component.
+   */
+  classes: PropTypes.object.isRequired,
+  /**
+   * Override or extend the styles applied to the outer component.
+   */
+  className: PropTypes.string,
+  /**
+   * Set the initial timespan to be viewed
+   * TODO: Write a custom validator for a two-element array.
+   */
+  initialTimespan: PropTypes.array.isRequired,
+  /**
+   * The display order of the categories in the timeline.
+   */
+  categoryOrder: PropTypes.array.isRequired,
+  /**
+   * The minimum displayable timespan duration.
+   * TODO: Where are these interpreted? Time type is unkown to Timeline
+   */
+  minTime: PropTypes.number,
+  /**
+   * The maximum displayable timespan duration.
+   * TODO: Where are these interpreted? Time type is unkown to Timeline
+   */
+  maxTime: PropTypes.number.isRequired,
+};
+
+export default withStyles(styles, {name: 'CrkTimeline' })(Timeline);
 

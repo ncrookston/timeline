@@ -2,7 +2,7 @@ import React from 'react';
 import {makeStyles} from '@material-ui/core/styles';
 
 import {produce} from 'immer';
-import {reduce} from 'lodash';
+import {last,reduce} from 'lodash';
 
 import Timeline from './Timeline';
 import CategoryMarks from './Timeline/CategoryMarks';
@@ -22,8 +22,11 @@ const useStyles = makeStyles({
     margin: 'auto',
     height: '50%',
     top: '20px',
-    //border: '1px solid red',
     position: 'absolute'
+  },
+  timeline: {
+    border: '1px solid black',
+    overflow: 'hidden',
   },
 });
 
@@ -82,20 +85,22 @@ const classItems = [
   },
 ];
 
-function getHourDayMarks(timePerPx, minPx) {
-  const pxPerTime = 1 / timePerPx;
-  let markStep = 1;
-  let label = 'Hour';
-  if (pxPerTime < minPx) {
-    markStep = 24;
-    label = 'Day';
-  }
-  return {markStep, label};
+function getMarks(timePerPx, minPx) {
+  const breaks = [
+    [24*7, timeH => `Week ${timeH / (24*7)}`],
+    [24, timeH => `Day ${timeH / 24}`],
+    [1, timeH => `Hour ${timeH}`],
+    [1/4, timeH => (timeH * 4 * 15) % 60],
+    [1/60, timeH => `M ${Math.round(timeH * 60) % 60}`],
+    [1/3600, timeH => `S ${Math.round(timeH * 3600) % 60}`]
+  ];
+  return breaks.find(obj => obj[0] / timePerPx < minPx) || last(breaks);
 }
 
 export default function App() {
   const [data, setData] = React.useState(initialData);
   const [bgData, setBgData] = React.useState(classItems);
+  const [selectedId, setSelectedId] = React.useState(null);
   const classes = useStyles();
   const id_to_idx = reduce(data, (obj, datum, i) => ({...obj, [datum.id]: i}), {});
   const bg_id_to_idx = reduce(bgData, (obj, datum, i) => ({...obj, [datum.id]: i}), {});
@@ -123,17 +128,18 @@ export default function App() {
   return (
     <div className={classes.root}>
       <Timeline
+        className={classes.timeline}
         initialTimespan={[0,10]}
         categoryOrder={['c','a','b']}
         maxTime={240}
       >
-        <TopTimeLabel labelMarks={tpp => getHourDayMarks(tpp,60)} />
+        <TopTimeLabel labelMarks={tpp => getMarks(tpp,1000)} />
         <LeftSidebar
           categoryInfo={categories}
         />
         <MouseControlCanvas>
-          <TimeMarks labelMarks={tpp => getHourDayMarks(tpp,30)} />
           <CategoryMarks />
+          <TimeMarks labelMarks={tpp => getMarks(tpp,240)} />
           <FullSpanLayer
             items={bgData}
             onUpdateTime={onUpdateBg}
@@ -144,6 +150,8 @@ export default function App() {
             onUpdateTime={onItemUpdateTime}
             onUpdateCategory={onUpdateCategory}
             timestep={.5}
+            selected={[selectedId]}
+            onSelect={(id,doSelect) => setSelectedId(doSelect ? id : null)}
           />
         </MouseControlCanvas>
       </Timeline>

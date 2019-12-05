@@ -1,26 +1,39 @@
 import React from 'react';
-import {makeStyles} from '@material-ui/core/styles';
+import {withStyles} from '@material-ui/core/styles';
 
 import {range} from 'lodash';
+import clsx from 'clsx';
 
 import Context from './Context';
 
-const useStyles = makeStyles({
+const styles = theme => ({
   labelContainer: {
     position: 'absolute',
     overflow: 'hidden',
-    border: '1px solid blue',
     boxSizing: 'border-box',
   },
   label: {
     position: 'absolute',
-    borderRight: '1px solid red',
+    borderRight: '1px dotted #000d',
     boxSizing: 'border-box',
-  }
+    overflow: 'hidden',
+  },
+  top: {
+    top: 0,
+  },
+  bottom: {
+    bottom: 0,
+  },
 });
 
-export function TimeLabel({style, height, labelMarks}) {
-  const classes = useStyles();
+function TimeLabelImpl(props) {
+  const {
+    classes,
+    className,
+    variant,
+    height,
+    labelMarks,
+  } = props;
   const {
     timespan,
     timePerPx,
@@ -29,7 +42,7 @@ export function TimeLabel({style, height, labelMarks}) {
     rightSidebarWidthPx,
   } = React.useContext(Context);
 
-  const {markStep, label} = labelMarks(timePerPx);
+  const [markStep, getLabel] = labelMarks(timePerPx);
 
   //Which time block is leftmost?
   const stepTimeStart = Math.floor(timespan[0] / markStep) * markStep;
@@ -41,24 +54,23 @@ export function TimeLabel({style, height, labelMarks}) {
   const pxWidth = markStep / timePerPx;
   return (
     <div
-      className={classes.labelContainer}
+      className={clsx(classes.labelContainer, classes[variant])}
       style={{
-        ...style,
         left: leftSidebarWidthPx,
         width: pxFullWidth,
         height: height+'px'
       }}
     >
     {
-      range(stepTimeStart, stepTimeEnd, markStep).map(time => {
+      range(stepTimeStart, stepTimeEnd, markStep).map((time,idx) => {
         const left = (time - timespan[0]) / timePerPx;
         return (
           <div
             key={time}
-            className={classes.label}
-            style={{...style, left, height: height+'px', width: pxWidth}}
+            className={clsx(classes.label, className)}
+            style={{left, height: height+'px', width: pxWidth}}
           >
-          {label} {time / markStep}
+          {getLabel(time)}
           </div>
         );
       })
@@ -67,7 +79,9 @@ export function TimeLabel({style, height, labelMarks}) {
   );
 }
 
-export function TopTimeLabel({labelMarks}) {
+const TimeLabel = withStyles(styles, {name: 'CrkTimeLabel' })(TimeLabelImpl);
+
+function TopTimeLabelImpl(props) {
   const {
     headerHeightPx,
     setHeaderHeightPx,
@@ -77,10 +91,10 @@ export function TopTimeLabel({labelMarks}) {
   if (headerHeightPx !== height)
     setHeaderHeightPx(height);
 
-  return <TimeLabel style={{top: 0}} height={height} labelMarks={labelMarks} />;
+  return <TimeLabelImpl variant='top' height={height} {...props} />;
 }
-
-export function BottomTimeLabel({labelMarks}) {
+const TopTimeLabel = withStyles(styles, {name: 'CrkTopTimeLabel' })(TopTimeLabelImpl);
+function BottomTimeLabelImpl(props) {
   const {
     footerHeightPx,
     setFooterHeightPx,
@@ -90,6 +104,14 @@ export function BottomTimeLabel({labelMarks}) {
   if (footerHeightPx !== height)
     setFooterHeightPx(height);
 
-  return <TimeLabel style={{bottom: 0}} height={height} labelMarks={labelMarks} />;
+  return <TimeLabelImpl variant='bottom' height={height} {...props} />;
 }
+const BottomTimeLabel = withStyles(styles, {name: 'CrkBottomTimeLabel' })(BottomTimeLabelImpl);
+
+export {
+  styles,
+  TimeLabel,
+  TopTimeLabel,
+  BottomTimeLabel,
+};
 

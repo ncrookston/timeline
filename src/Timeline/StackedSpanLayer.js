@@ -19,6 +19,11 @@ const useStyles = makeStyles({
     top: 0,
     minWidth: '1px',
     minHeight: '1px',
+    backgroundColor: '#6593f5',
+    color: '#fff',
+    '&:hover': {
+      backgroundColor: '#85b3ff',
+    }
   },
 });
 function getCategoryIdMap(categoryIds, items, getCategory, getId, getTimespan) {
@@ -58,6 +63,8 @@ export default function StackedSpanLayer({
   getCategory=item=>item.category,
   getId=item=>item.id,
   getTimespan=item=>item.timespan,
+  selected=[],
+  onSelect=()=>{},
 }) {
   const {
     categoryOrder,
@@ -104,6 +111,8 @@ export default function StackedSpanLayer({
             height={rowHeight - 10}
             onUpdate={onUpdateImpl}
             timestep={timestep}
+            onSelect={doSelect => onSelect(getId(d), doSelect)}
+            selected={selected.find(id => id === getId(d))}
             children={datum => (
               <Button className={classes.button} variant="contained">
                 {datum.id}
