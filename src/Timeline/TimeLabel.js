@@ -7,16 +7,24 @@ import clsx from 'clsx';
 import Context from './Context';
 
 const styles = theme => ({
-  labelContainer: {
+  container: {
     position: 'absolute',
     overflow: 'hidden',
     boxSizing: 'border-box',
+    borderBottom: '1px dotted #000d',
   },
   label: {
     position: 'absolute',
-    borderRight: '1px dotted #000d',
+    borderLeft: '1px dotted #000d',
     boxSizing: 'border-box',
     overflow: 'hidden',
+    backgroundColor: 'white',
+  },
+  left: {
+    borderRight: '1px dotted #000d',
+  },
+  right: {
+    borderLeft: '1px dotted #000d',
   },
   top: {
     top: 0,
@@ -54,16 +62,16 @@ function TimeLabelImpl(props) {
   const pxWidth = markStep / timePerPx;
   return (
     <div
-      className={clsx(classes.labelContainer, classes[variant])}
+      className={clsx(classes.container, classes[variant])}
       style={{
-        left: leftSidebarWidthPx,
-        width: pxFullWidth,
+        left: 0,
+        width: containerWidthPx,
         height: height+'px'
       }}
     >
     {
       range(stepTimeStart, stepTimeEnd, markStep).map((time,idx) => {
-        const left = (time - timespan[0]) / timePerPx;
+        const left = (time - timespan[0]) / timePerPx + leftSidebarWidthPx;
         return (
           <div
             key={time}
@@ -75,6 +83,14 @@ function TimeLabelImpl(props) {
         );
       })
     }
+      <div
+        className={clsx(classes.label, classes.left, className)}
+        style={{left: 0, height: height+'px', width: leftSidebarWidthPx}}
+      />
+      <div
+        className={clsx(classes.label, classes.right, className)}
+        style={{right: 0, height: height+'px', width: rightSidebarWidthPx}}
+      />
     </div>
   );
 }

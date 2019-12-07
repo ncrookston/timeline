@@ -1,12 +1,4 @@
 import React from 'react';
-import {makeStyles} from '@material-ui/core/styles';
-
-const useStyles = makeStyles({
-  handle: {
-    width: '100%',
-    height: '100%',
-  }
-});
 
 function getPt(evt) {
   return [evt.screenX, evt.screenY];
@@ -73,11 +65,9 @@ export function usePan({onDrag, onClick=null, onStart=null}) {
 }
 export function Draggable({onStart, onDrag, cursor, onClick=null}) {
   const listeners = useDraggable({onStart, onDrag, onClick})
-  const classes = useStyles();
   return (
     <div
-      className={classes.handle}
-      style={{cursor: cursor}}
+      style={{cursor: cursor, width: '100%', height: '100%'}}
       {...listeners}
     />
   );

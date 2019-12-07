@@ -1,5 +1,6 @@
 import React from 'react';
 import {makeStyles} from '@material-ui/core/styles';
+import Button from '@material-ui/core/Button';
 
 import {produce} from 'immer';
 import {last,reduce} from 'lodash';
@@ -26,7 +27,21 @@ const useStyles = makeStyles({
   },
   timeline: {
     border: '1px solid black',
-    overflow: 'hidden',
+  },
+  button: {
+    width: '100%',
+    height: '100%',
+    margin: 0,
+    padding: 0,
+    boxShadow: 'none',
+    top: 0,
+    minWidth: '1px',
+    minHeight: '1px',
+    backgroundColor: '#6593f5',
+    color: '#fff',
+    '&:hover': {
+      backgroundColor: '#85b3ff',
+    }
   },
 });
 
@@ -131,7 +146,8 @@ export default function App() {
         className={classes.timeline}
         initialTimespan={[0,10]}
         categoryOrder={['c','a','b']}
-        maxTime={240}
+        minTime={1/60}
+        maxTime={24*10}
       >
         <TopTimeLabel labelMarks={tpp => getMarks(tpp,1000)} />
         <LeftSidebar
@@ -144,6 +160,7 @@ export default function App() {
             items={bgData}
             onUpdateTime={onUpdateBg}
             timestep={1}
+            itemProps={{disableDrag: true, disableResize: true}}
           />
           <StackedSpanLayer
             items={data}
@@ -152,6 +169,12 @@ export default function App() {
             timestep={.5}
             selected={[selectedId]}
             onSelect={(id,doSelect) => setSelectedId(doSelect ? id : null)}
+            itemRenderer={datum => (
+              <Button className={classes.button} variant="contained">
+                {datum.id}
+              </Button>
+            )}
+            itemProps={{editAfterSelect:true}}
           />
         </MouseControlCanvas>
       </Timeline>

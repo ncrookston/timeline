@@ -15,7 +15,6 @@ export const styles = theme => ({
   handle: {
     boxSizing: 'border-box',
     position: 'absolute',
-    top: 0,
     backgroundColor: '#0003',
   },
   category0: {
@@ -29,12 +28,12 @@ export const styles = theme => ({
 function SidebarImpl(props) {
   //TODO: Use categoryInfo
   const {
-    categoryInfo = null,
     classes,
     className,
     initialSidebarWidth = 150,
     isLeft,
     patternSize = 2,
+    categoryRenderer = categoryId => categoryId,
   } = props;
   const {
     categoryOrder,
@@ -52,7 +51,7 @@ function SidebarImpl(props) {
   const sidebarWidthPx = isLeft ? leftSidebarWidthPx : rightSidebarWidthPx;
   const otherWidthPx = !isLeft ? leftSidebarWidthPx : rightSidebarWidthPx;
   const setSidebarWidthPx = isLeft ? setLeftSidebarWidthPx : setRightSidebarWidthPx;
-  const resizeStyle = isLeft ? {left: sidebarWidthPx-7} : {right: sidebarWidthPx-7};
+  const resizeStyle = {[isLeft ? 'left' : 'right']: sidebarWidthPx-3};
   const sideStyle = isLeft ? {left: 0} : {right: 0};
   if (sidebarWidthPx === 0)
     setSidebarWidthPx(initialSidebarWidth);
@@ -71,7 +70,6 @@ function SidebarImpl(props) {
   return (<>
     {
       categoryOrder.map((categoryId,idx) => {
-          console.log(idx)
           return (
         <div
           key={categoryId}
@@ -80,16 +78,16 @@ function SidebarImpl(props) {
             ...sideStyle,
             top: headerHeightPx + offsets[idx] + 'px',
             height: categoryHeights[categoryId] + 'px',
-            width: sidebarWidthPx-7
+            width: sidebarWidthPx-3
           }}
         >
-          {categoryId}
+          {categoryRenderer(categoryId)}
         </div>
       )})
     }
     <div
       className={classes.handle}
-      style={{...resizeStyle, width: 5, height: fullHeight+'px'}}
+      style={{...resizeStyle, top: headerHeightPx, width: 5, height: fullHeight-headerHeightPx+'px'}}
     >
       <Resizable size={sidebarWidthPx} minSize={100} onResize={onResize} />
     </div>

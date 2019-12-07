@@ -40,6 +40,9 @@ function Item(props) {
     getTimespan,
     selected,
     children,
+    disableDrag = false,
+    disableResize = false,
+    editAfterSelect = false,
   } = props;
 
   const {
@@ -54,6 +57,8 @@ function Item(props) {
   const snap = time => timestep ? timestep * Math.round(time / timestep) : time;
   const onDrag = (evt,info) => {
     let newSpan = [...getTimespan(datum)];
+    if (disableDrag || (editAfterSelect && !selected))
+      return;
     if (info.hasMoved) {
       const new0 = initialTime + snap(timePerPx * info.offset[0]);
       newSpan = [new0, new0 + newSpan[1] - newSpan[0]];
@@ -91,6 +96,7 @@ function Item(props) {
   return (
     <div ref={itemRef} className={classes.inner} style={style} {...panListeners}>
       {children(datum)}
+      {!disableResize && <>
       <div
         style={rStyle}
         className={classes.leftResize}
@@ -111,6 +117,7 @@ function Item(props) {
           onResize={newSize => onResize(newSize, 'right')}
         />
       </div>
+      </>}
     </div>
   );
 }

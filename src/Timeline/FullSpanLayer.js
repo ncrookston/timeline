@@ -1,44 +1,47 @@
 import React from 'react';
-import {makeStyles} from '@material-ui/core/styles';
+import {withStyles} from '@material-ui/core/styles';
 
 import {fromPairs, initial, zip} from 'lodash';
+import clsx from 'clsx';
 
 import getOrderedOffsets from './getOrderedOffsets';
 import Context from './Context';
 import Item from './Item';
 
-const useStyles = makeStyles({
+export const styles = theme => ({
   item: {
     width: '100%',
     height: '100%',
     boxSizing: 'border-box',
     backgroundColor: '#73c2fb73',
     border: '1px solid #9999',
-    //background: 'repeating-linear-gradient(45deg,#606dbc,#606dbc 10px,#465298 10px, #465298 20px)',
-    //'&:hover': {
-    //  background: 'repeating-linear-gradient(45deg,#465298,#465298 10px,#606dbc 10px, #606dbc 20px)',
-    //}
   },
 });
-export default function FullSpanLayer({
-  items,
-  onUpdateTime=null,
-  getCategory=item=>item.category,
-  getId=item=>item.id,
-  getTimespan=item=>item.timespan,
-  timestep=null,
-}) {
+
+function FullSpanLayer(props) {
+  const {
+    items,
+    onUpdateTime = null,
+    getCategory = item=>item.category,
+    getId = item => item.id,
+    getTimespan = item => item.timespan,
+    timestep = null,
+    classes,
+    className = null,
+    itemRenderer = datum => <div className={clsx(classes.item, className)} />,
+    itemProps,
+  } = props;
   const {
     categoryOrder,
     categoryHeights,
   } = React.useContext(Context);
+
   const offsets = getOrderedOffsets(categoryOrder, categoryHeights);
   const offsetsByCat = fromPairs(zip(categoryOrder, initial(offsets)));
   const onUpdateImpl = (timespan, datum, canvasY) => {
     if (onUpdateTime)
       onUpdateTime(timespan, datum);
   };
-  const classes = useStyles();
   return (<>
     {
       items.map(d => {
@@ -54,12 +57,15 @@ export default function FullSpanLayer({
             selected={true}
             onUpdate={onUpdateImpl}
             timestep={timestep}
+            {...itemProps}
           >
-            {datum => <div className={classes.item} variant="contained" />}
+          { itemRenderer }
           </Item>
         );
       })
     }
   </>);
 }
+
+export default withStyles(styles, {name: 'CrkFullSpanLayer' })(FullSpanLayer);
 

@@ -19,6 +19,7 @@ export const styles = theme => ({
     boxSizing: 'border-box',
     width: '100%',
     position: 'relative',
+    overflow: 'hidden',
     //border: '1px solid green',
   },
 });
@@ -28,8 +29,8 @@ function Timeline(props) {
     children,
     initialTimespan,//Need a sensible default...
     categoryOrder,
-    minTime = 1 / 3600,
-    maxTime = 365 * 24,
+    minTime = null,
+    maxTime = null,
     classes,
     className,
   } = props;
@@ -154,12 +155,10 @@ Timeline.propTypes = {
   categoryOrder: PropTypes.array.isRequired,
   /**
    * The minimum displayable timespan duration.
-   * TODO: Where are these interpreted? Time type is unkown to Timeline
    */
   minTime: PropTypes.number,
   /**
    * The maximum displayable timespan duration.
-   * TODO: Where are these interpreted? Time type is unkown to Timeline
    */
   maxTime: PropTypes.number.isRequired,
 };

@@ -1,31 +1,39 @@
 import React from 'react';
-import { makeStyles } from '@material-ui/core/styles';
-import Button from '@material-ui/core/Button';
+import {withStyles} from '@material-ui/styles';
 
 import IntervalTree from 'node-interval-tree';
-import {concat, find, fromPairs, initial, mapValues, max, range, reduce, sortedLastIndex, values, zip} from 'lodash';
+import {
+  concat,
+  find,
+  fromPairs,
+  initial,
+  mapValues,
+  max,
+  range,
+  reduce,
+  sortedLastIndex,
+  values,
+  zip
+} from 'lodash';
+import clsx from 'clsx';
 
 import getOrderedOffsets from './getOrderedOffsets';
 import Context from './Context';
 import Item from './Item';
 
-const useStyles = makeStyles({
-  button: {
+export const styles = theme => ({
+  span: {
+    textAlign: 'center',
     width: '100%',
     height: '100%',
-    margin: 0,
-    padding: 0,
-    boxShadow: 'none',
-    top: 0,
-    minWidth: '1px',
-    minHeight: '1px',
     backgroundColor: '#6593f5',
     color: '#fff',
     '&:hover': {
       backgroundColor: '#85b3ff',
     }
-  },
+  }
 });
+
 function getCategoryIdMap(categoryIds, items, getCategory, getId, getTimespan) {
   let categoryItems = fromPairs(categoryIds.map(categoryId => [
     categoryId, {list: [], tree: new IntervalTree()}
@@ -55,17 +63,23 @@ function getCategoryIdMap(categoryIds, items, getCategory, getId, getTimespan) {
   });
 }
 
-export default function StackedSpanLayer({
-  items,
-  onUpdateCategory=null,
-  onUpdateTime=null,
-  timestep,
-  getCategory=item=>item.category,
-  getId=item=>item.id,
-  getTimespan=item=>item.timespan,
-  selected=[],
-  onSelect=()=>{},
-}) {
+function StackedSpanLayer(props) {
+  const {
+    items,
+    onUpdateCategory=null,
+    onUpdateTime=null,
+    timestep,
+    getCategory=item=>item.category,
+    getId=item=>item.id,
+    getTimespan=item=>item.timespan,
+    selected=[],
+    onSelect=()=>{},
+    classes,
+    className,
+    itemRenderer = datum => <div className={clsx(classes.span, className)}>{getId(datum)}</div>,
+    itemProps={},
+  } = props;
+
   const {
     categoryOrder,
     categoryHeights,
@@ -93,7 +107,6 @@ export default function StackedSpanLayer({
         onUpdateCategory(newCat, datum);
     }
   };
-  const classes = useStyles();
   return (<>
     {
       items.map(d => {
@@ -101,6 +114,7 @@ export default function StackedSpanLayer({
         const itemOffset = byCategoryIds[getCategory(d)][getId(d)] * rowHeight;
         //TODO: Expose an interface for replacing the renderers for sub-items.
         //TODO: Allow styles to be overriden the same way as material-ui
+        const isSelected = selected.find(id => id === getId(d));
         return (
           <Item
             key={getId(d)}
@@ -112,12 +126,9 @@ export default function StackedSpanLayer({
             onUpdate={onUpdateImpl}
             timestep={timestep}
             onSelect={doSelect => onSelect(getId(d), doSelect)}
-            selected={selected.find(id => id === getId(d))}
-            children={datum => (
-              <Button className={classes.button} variant="contained">
-                {datum.id}
-              </Button>
-            )}
+            selected={isSelected}
+            children={itemRenderer}
+            {...itemProps}
           />
         );
       })
@@ -125,4 +136,6 @@ export default function StackedSpanLayer({
     </>
   );
 }
+
+export default withStyles(styles, {name: 'CrkStackedSpanLayer' })(StackedSpanLayer);
 

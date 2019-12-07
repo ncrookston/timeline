@@ -10,7 +10,6 @@ export const styles = theme => ({
     position: 'absolute',
     boxSizing: 'border-box',
     overflow: 'hidden',
-    borderTop: '1px dotted #000d',
   }
 });
 
