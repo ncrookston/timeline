@@ -31,7 +31,7 @@ function SidebarImpl(props) {
     classes,
     className,
     initialSidebarWidth = 150,
-    isLeft,
+    isLeft = false,
     patternSize = 2,
     categoryRenderer = categoryId => categoryId,
   } = props;

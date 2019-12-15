@@ -36,7 +36,7 @@ function Item(props) {
     height,
     onUpdate,
     onSelect,
-    timestep,
+    timestep = null,
     getTimespan,
     selected,
     children,

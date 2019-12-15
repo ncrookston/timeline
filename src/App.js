@@ -45,20 +45,11 @@ const useStyles = makeStyles({
   },
 });
 
-const categories = [
-  {
-    id: 'a',
-    name: 'Person A',
-  },
-  {
-    id: 'b',
-    name: 'Person B',
-  },
-  {
-    id: 'c',
-    name: 'Person C',
-  },
-];
+const categories = {
+  a: 'Person A',
+  b: 'Person B',
+  c: 'Person C',
+};
 const initialData = [
   {
     id: '1',
@@ -151,7 +142,7 @@ export default function App() {
       >
         <TopTimeLabel labelMarks={tpp => getMarks(tpp,1000)} />
         <LeftSidebar
-          categoryInfo={categories}
+          categoryRenderer={cat => categories[cat]}
         />
         <MouseControlCanvas>
           <CategoryMarks />
@@ -160,7 +151,7 @@ export default function App() {
             items={bgData}
             onUpdateTime={onUpdateBg}
             timestep={1}
-            itemProps={{disableDrag: true, disableResize: true}}
+            itemProps={{disableDrag: true, disableResize: false}}
           />
           <StackedSpanLayer
             items={data}
@@ -174,7 +165,7 @@ export default function App() {
                 {datum.id}
               </Button>
             )}
-            itemProps={{editAfterSelect:true}}
+            itemProps={{editAfterSelect: false}}
           />
         </MouseControlCanvas>
       </Timeline>

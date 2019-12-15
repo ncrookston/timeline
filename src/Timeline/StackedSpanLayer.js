@@ -6,23 +6,17 @@ import {
   concat,
   find,
   fromPairs,
-  initial,
   mapValues,
   max,
   range,
   reduce,
-  sortedLastIndex,
   values,
-  zip
 } from 'lodash';
-import clsx from 'clsx';
 
-import getOrderedOffsets from './getOrderedOffsets';
-import Context from './Context';
-import Item from './Item';
+import HeterogeneousLayer from './HeterogeneousLayer';
 
 export const styles = theme => ({
-  span: {
+  item: {
     textAlign: 'center',
     width: '100%',
     height: '100%',
@@ -63,79 +57,26 @@ function getCategoryIdMap(categoryIds, items, getCategory, getId, getTimespan) {
   });
 }
 
-function StackedSpanLayer(props) {
-  const {
-    items,
-    onUpdateCategory=null,
-    onUpdateTime=null,
-    timestep,
-    getCategory=item=>item.category,
-    getId=item=>item.id,
-    getTimespan=item=>item.timespan,
-    selected=[],
-    onSelect=()=>{},
-    classes,
-    className,
-    itemRenderer = datum => <div className={clsx(classes.span, className)}>{getId(datum)}</div>,
-    itemProps={},
-  } = props;
-
-  const {
-    categoryOrder,
-    categoryHeights,
-    setCategoryHeights,
-  } = React.useContext(Context);
-  const byCategoryIds = React.useMemo(() => (
-      getCategoryIdMap(categoryOrder, items, getCategory, getId, getTimespan)
-    ),
-    [getCategory,getId,getTimespan,categoryOrder,items]
+function getStackedOffsets({items, categories, heights, setHeights, getCategory, getId, getTimespan}) {
+  const byCategoryIds = getCategoryIdMap(
+    categories, items, getCategory, getId, getTimespan
   );
   const rowHeight = 40;
-  setCategoryHeights('StackedSpanLayer', mapValues(byCategoryIds, obj =>
-    rowHeight * (max(concat(0,values(obj))) + 1)
-  ));
-  const offsets = getOrderedOffsets(categoryOrder, categoryHeights);
-  const offsetsByCat = fromPairs(zip(categoryOrder, initial(offsets)));
-  const onUpdateImpl = (timespan, datum, canvasY) => {
-    if (onUpdateTime)
-      onUpdateTime(timespan, datum);
-
-    if (onUpdateCategory && canvasY !== null) {
-      const idx = Math.min(sortedLastIndex(offsets, canvasY), categoryOrder.length) - 1;
-      const newCat = categoryOrder[idx];
-      if (idx !== -1 && newCat !== getCategory(datum))
-        onUpdateCategory(newCat, datum);
-    }
-  };
-  return (<>
-    {
-      items.map(d => {
-        const categoryOffset = offsetsByCat[getCategory(d)];
-        const itemOffset = byCategoryIds[getCategory(d)][getId(d)] * rowHeight;
-        //TODO: Expose an interface for replacing the renderers for sub-items.
-        //TODO: Allow styles to be overriden the same way as material-ui
-        const isSelected = selected.find(id => id === getId(d));
-        return (
-          <Item
-            key={getId(d)}
-            datum={d}
-            getId={getId}
-            getTimespan={getTimespan}
-            yOffset={categoryOffset + itemOffset + 5}
-            height={rowHeight - 10}
-            onUpdate={onUpdateImpl}
-            timestep={timestep}
-            onSelect={doSelect => onSelect(getId(d), doSelect)}
-            selected={isSelected}
-            children={itemRenderer}
-            {...itemProps}
-          />
-        );
-      })
-    }
-    </>
+  setHeights(
+    mapValues(byCategoryIds, obj => rowHeight * (max(concat(0,values(obj))) + 1))
   );
+
+  //Function to lookup item offsets within the category
+  return {
+    getIntraOffsets: d => {
+      return byCategoryIds[getCategory(d)][getId(d)] * rowHeight + 5;
+    },
+    heights: d => rowHeight - 10,
+  };
 }
 
+function StackedSpanLayer(props) {
+  return <HeterogeneousLayer getCategoryRenderOffsets={getStackedOffsets} {...props} />
+}
 export default withStyles(styles, {name: 'CrkStackedSpanLayer' })(StackedSpanLayer);
 
