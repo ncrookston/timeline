@@ -13,7 +13,7 @@ import {
   values,
 } from 'lodash';
 
-import HeterogeneousLayer from './HeterogeneousLayer';
+import SpanLayer from './SpanLayer';
 
 export const styles = theme => ({
   item: {
@@ -57,26 +57,56 @@ function getCategoryIdMap(categoryIds, items, getCategory, getId, getTimespan) {
   });
 }
 
-function getStackedOffsets({items, categories, heights, setHeights, getCategory, getId, getTimespan}) {
+function getStackedOffsets({items, categories, getCategory, getId, getTimespan}) {
   const byCategoryIds = getCategoryIdMap(
     categories, items, getCategory, getId, getTimespan
   );
   const rowHeight = 40;
-  setHeights(
-    mapValues(byCategoryIds, obj => rowHeight * (max(concat(0,values(obj))) + 1))
-  );
+  const heights = mapValues(byCategoryIds, obj => rowHeight * (max(concat(0,values(obj))) + 1));
 
   //Function to lookup item offsets within the category
   return {
-    getIntraOffsets: d => {
-      return byCategoryIds[getCategory(d)][getId(d)] * rowHeight + 5;
-    },
-    heights: d => rowHeight - 10,
+    getIntraOffsets: d => byCategoryIds[getCategory(d)][getId(d)] * rowHeight + 5,
+    heights,
   };
 }
+function getItemLayer(props) {
+  const {
+    data,
+    onUpdateTime,
+    onUpdateCategory,
+    timestep,
+    selected,
+    onSelect,
+    itemRenderer = {datum => (
+      <div className={classes.item} variant="contained">
+        {datum.id}
+      </div>
+    )}
+    itemProps,
+  } = props;
 
-function StackedSpanLayer(props) {
-  return <HeterogeneousLayer getCategoryRenderOffsets={getStackedOffsets} {...props} />
+  const calcOffsets = getStackedOffsets({
+    items: data,
+    categories,
+    heights,
+    setHeights,
+    getCategory,
+    getId,
+    getTimespan
+  });
+
+  const fullHeight = Object.values(
+
+  return {
+    getHeight: () => height,
+    render: rprops => (
+      <SpanLayer
+        renderOffsets={calcOffsets}
+        {...rprops}
+      />
+    )
+  }
 }
-export default withStyles(styles, {name: 'CrkStackedSpanLayer' })(StackedSpanLayer);
+//export default withStyles(styles, {name: 'CrkStackedSpanLayer' })(StackedSpanLayer);
 

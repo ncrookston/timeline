@@ -28,7 +28,7 @@ export const styles = theme => ({
   }
 });
 
-function HeterogeneousLayer(props) {
+function SpanLayer(props) {
   const {
     items,
     onUpdateCategory=null,
@@ -105,5 +105,5 @@ function HeterogeneousLayer(props) {
     </>
   );
 }
-export default withStyles(styles, {name: 'CrkHeterogeneousLayer' })(HeterogeneousLayer);
+export default withStyles(styles, {name: 'CrkSpanLayer' })(SpanLayer);
 

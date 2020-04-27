@@ -6,20 +6,33 @@ function getPt(evt) {
 function ptDiff(evt, pt) {
   return [evt.screenX - pt[0], evt.screenY - pt[1]];
 }
-export function useDraggable({onStart, onDrag, onClick=null}) {
+export function useDraggable({onStart, onDrag, limits=null, onClick=null}) {
   const [firstMouse, setFirstMouse] = React.useState(null);
   const [lastMouse, setLastMouse] = React.useState(null);
   const [didMove, setDidMove] = React.useState(false);
+  const [rLimits, setRLimits] = React.useState(null);
 
   React.useLayoutEffect(() => {
     const onMouseMove = evt => {
       if (firstMouse !== null) {
         evt.preventDefault();
         evt.stopPropagation();
-        const diff = ptDiff(evt,firstMouse);
-        if (diff[0] * diff[0] + diff[1] + diff[1] > 10)
+        const offset = ptDiff(evt,firstMouse);
+        const delta = ptDiff(evt,lastMouse);
+
+        const inBounds = idx => (
+          !rLimits[idx] || (lastMouse[idx] >= rLimits[idx][0] && lastMouse[idx] <= rLimits[idx][1])
+        );
+        if (offset[0] * offset[0] + offset[1] + offset[1] > 10)
           setDidMove(true);
-        onDrag(evt, {hasMoved: didMove, offset: diff, delta: ptDiff(evt, lastMouse)});
+        if (!rLimits || (inBounds(0) && inBounds(1))) {
+          onDrag(evt, {
+            hasMoved: didMove,
+            offset,
+            delta,
+            initial: firstMouse,
+          });
+        }
         if (didMove) {
           setLastMouse(getPt(evt));
         }
@@ -34,6 +47,7 @@ export function useDraggable({onStart, onDrag, onClick=null}) {
         setFirstMouse(null);
         setLastMouse(null);
         setDidMove(false);
+        setRLimits(null);
       }
     };
     window.addEventListener('mousemove', onMouseMove);
@@ -48,7 +62,12 @@ export function useDraggable({onStart, onDrag, onClick=null}) {
     onMouseDown: evt => {
       evt.preventDefault();
       evt.stopPropagation();
-      setFirstMouse(getPt(evt));
+      const fm = getPt(evt);
+      setFirstMouse(fm);
+      setRLimits(limits ? [
+        limits[0] ? limits[0].map(l => l + fm[0]) : null,
+        limits[1] ? limits[1].map(l => l + fm[1]) : null,
+      ] : null);
       setLastMouse(getPt(evt));
       setDidMove(false);
       if (onStart)
@@ -63,8 +82,8 @@ export function usePan({onDrag, onClick=null, onStart=null}) {
     onStart
   });
 }
-export function Draggable({onStart, onDrag, cursor, onClick=null}) {
-  const listeners = useDraggable({onStart, onDrag, onClick})
+export function Draggable({onStart, onDrag, cursor, limits=null, onClick=null}) {
+  const listeners = useDraggable({onStart, onDrag, onClick, limits})
   return (
     <div
       style={{cursor: cursor, width: '100%', height: '100%'}}

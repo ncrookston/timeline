@@ -3,7 +3,7 @@ import {withStyles} from '@material-ui/core/styles';
 
 import clsx from 'clsx';
 
-import HeterogeneousLayer from './HeterogeneousLayer';
+import SpanLayer from './SpanLayer';
 
 export const styles = theme => ({
   item: {
@@ -16,14 +16,18 @@ export const styles = theme => ({
 });
 
 function FullSpanLayer(props) {
+  const {
+    selected = true,
+    ...other
+  } = props;
   const getRenderHeights = ({heights}) => {
     return ({heights: cat => heights[cat], getIntraOffsets: d => 0});
   };
-  return (<HeterogeneousLayer
+  return (<SpanLayer
     getCategoryRenderOffsets={getRenderHeights}
-    selected={true}
-    itemRenderer={datum => <div className={clsx(props.classes.item, props.className)} />}
-    {...props}
+    selected={selected}
+    itemRenderer={datum => <div className={clsx(other.classes.item, other.className)} />}
+    {...other}
   />);
 }
 

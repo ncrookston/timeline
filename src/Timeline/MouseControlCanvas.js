@@ -15,22 +15,21 @@ export const styles = theme => ({
 
 function MouseControlCanvas(props) {
   const {
-    children,
     classes
+    maxTime,
+    minTime,
+    headerHeight,
+    footerHeight,
   } = props;
 
   const {
     containerWidthPx,
-    maxTime,
-    minTime,
     timespan,
     setTimeStart,
     timePerPx,
     setTimePerPx,
-    leftSidebarWidthPx,
-    rightSidebarWidthPx,
-    headerHeightPx,
-    footerHeightPx,
+    leftSidebarWidth,
+    rightSidebarWidth,
   } = React.useContext(Context);
   const onDrag = (evt, info) => {
     setTimeStart(timespan[0] - info.delta[0] * timePerPx);
@@ -70,20 +69,26 @@ function MouseControlCanvas(props) {
       }}
       {...panListeners}
     >
-      {children}
+      <TopTimeLabel labelMarks={tpp => getMarks(tpp,1000)} />
+      <CategoryMarks />
+      <TimeMarks labelMarks={tpp => getMarks(tpp,240)} />
     </div>
   );
 }
 
 MouseControlCanvas.propTypes = {
   /**
-   * (Optional) Labels, Sidebars, and (Required) Canvas
-   */
-  children: PropTypes.node.isRequired,
-  /**
    * Override or extend the styles applied to this component.
    */
   classes: PropTypes.object.isRequired,
+  /**
+   * The minimum displayable timespan duration.
+   */
+  minTime: PropTypes.number,
+  /**
+   * The maximum displayable timespan duration.
+   */
+  maxTime: PropTypes.number.isRequired,
 };
 
 export default withStyles(styles, {name: 'CrkMouseControlCanvas' })(MouseControlCanvas);

@@ -20,14 +20,14 @@ function TimeMarks({labelMarks, classes, className}) {
     timespan,
     timePerPx,
     timeToPx,
-    containerWidthPx,
+    canvasWidthPx,
   } = React.useContext(Context);
 
   const markStep = labelMarks(timePerPx)[0];
 
   const pxStart = timeToPx(Math.floor(timespan[0] / markStep) * markStep);
-  const pxEnd = pxStart + containerWidthPx;
   const pxWidth = markStep / timePerPx;
+  const pxEnd = pxStart + canvasWidthPx + pxWidth;
   return range(pxStart, pxEnd, pxWidth).map((left,idx) => (
     <div
       key={idx}

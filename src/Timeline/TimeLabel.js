@@ -45,6 +45,7 @@ function TimeLabelImpl(props) {
   const {
     timespan,
     timePerPx,
+    canvasWidthPx,
     containerWidthPx,
     leftSidebarWidthPx,
     rightSidebarWidthPx,
@@ -54,8 +55,7 @@ function TimeLabelImpl(props) {
 
   //Which time block is leftmost?
   const stepTimeStart = Math.floor(timespan[0] / markStep) * markStep;
-  const pxFullWidth = containerWidthPx - leftSidebarWidthPx - rightSidebarWidthPx;
-  const timeFullWidth = pxFullWidth * timePerPx;
+  const timeFullWidth = canvasWidthPx * timePerPx;
   //Which time block is rightmost?
   const stepTimeEnd = stepTimeStart + (Math.ceil(timeFullWidth / markStep)+1) * markStep;
   //How many pixels wide is each block?
@@ -104,8 +104,11 @@ function TopTimeLabelImpl(props) {
   } = React.useContext(Context);
 
   const height = 30;
-  if (headerHeightPx !== height)
-    setHeaderHeightPx(height);
+  React.useEffect(() => {
+    if (headerHeightPx !== height) {
+      setHeaderHeightPx(height);
+    }
+  }, [headerHeightPx, setHeaderHeightPx]);
 
   return <TimeLabelImpl variant='top' height={height} {...props} />;
 }

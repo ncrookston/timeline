@@ -53,8 +53,10 @@ function SidebarImpl(props) {
   const setSidebarWidthPx = isLeft ? setLeftSidebarWidthPx : setRightSidebarWidthPx;
   const resizeStyle = {[isLeft ? 'left' : 'right']: sidebarWidthPx-3};
   const sideStyle = isLeft ? {left: 0} : {right: 0};
-  if (sidebarWidthPx === 0)
-    setSidebarWidthPx(initialSidebarWidth);
+  React.useEffect(() => {
+    if (sidebarWidthPx === 0)
+      setSidebarWidthPx(initialSidebarWidth);
+  }, [sidebarWidthPx, setSidebarWidthPx, initialSidebarWidth]);
 
   const offsets = getOrderedOffsets(categoryOrder, categoryHeights);
   const fullHeight = headerHeightPx + offsets[offsets.length-1] + footerHeightPx;

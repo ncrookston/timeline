@@ -1,19 +1,24 @@
 import React from 'react';
 import {makeStyles} from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
+import Tooltip from '@material-ui/core/Tooltip';
+import Typography from '@material-ui/core/Typography';
 
 import {produce} from 'immer';
 import {last,reduce} from 'lodash';
 
-import Timeline from './Timeline';
-import CategoryMarks from './Timeline/CategoryMarks';
-import TimeMarks from './Timeline/TimeMarks';
-import MouseControlCanvas from './Timeline/MouseControlCanvas';
-import {LeftSidebar} from './Timeline/Sidebar';
-import {TopTimeLabel} from './Timeline/TimeLabel';
+import Timeline, {getAccordianLayer, getCompositeLayer} from './Timeline';
 
-import FullSpanLayer from './Timeline/FullSpanLayer';
-import StackedSpanLayer from './Timeline/StackedSpanLayer';
+//import CategoryMarks from './Timeline/CategoryMarks';
+//import CategoryLayer from './Timeline/CategoryLayer';
+//import TimeMarks from './Timeline/TimeMarks';
+//import MouseControlCanvas from './Timeline/MouseControlCanvas';
+//import {LeftSidebar} from './Timeline/Sidebar';
+//import {TopTimeLabel} from './Timeline/TimeLabel';
+//import accordianCategory from './Timeline/accordianCategory';
+//import graphCategory from './Timeline/graphCategory';
+//import FullSpanLayer from './Timeline/FullSpanLayer';
+//import StackedSpanLayer from './Timeline/StackedSpanLayer';
 
 const useStyles = makeStyles({
   root: {
@@ -43,12 +48,25 @@ const useStyles = makeStyles({
       backgroundColor: '#85b3ff',
     }
   },
+  happy: {
+    backgroundColor: '#0c33',
+  },
+  angry: {
+    backgroundColor: '#c033',
+  },
+  silly: {
+    backgroundColor: '#cc33',
+  },
+  sad: {
+    backgroundColor: '#03c3',
+  },
 });
 
 const categories = {
   a: 'Person A',
   b: 'Person B',
   c: 'Person C',
+  d: 'Person D',
 };
 const initialData = [
   {
@@ -91,6 +109,21 @@ const classItems = [
   },
 ];
 
+const states = [
+  {time: 0, state: 'happy'},
+  {time: 2, state: 'angry'},
+  {time: 5, state: 'silly'},
+  {time: 8, state: 'sad'},
+  {time: 10, state: null},
+];
+const lines = [
+  {x: 0,   y: 150},
+  {x: 1.5, y: 120},
+  {x: 4,   y: 80},
+  {x: 7.7, y: 55},
+  {x: 10,  y: 99},
+];
+
 function getMarks(timePerPx, minPx) {
   const breaks = [
     [24*7, timeH => `Week ${timeH / (24*7)}`],
@@ -102,15 +135,33 @@ function getMarks(timePerPx, minPx) {
   ];
   return breaks.find(obj => obj[0] / timePerPx < minPx) || last(breaks);
 }
+function acRenderer(state) {
+  return (
+    <div style={{
+      width:'100%',
+      height:'100%',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+    }}>
+      <Tooltip title={state.state}><Typography>{state.state}</Typography></Tooltip>
+    </div>
+  );
+}
 
 export default function App() {
   const [data, setData] = React.useState(initialData);
   const [bgData, setBgData] = React.useState(classItems);
+  const [acData, setAcData] = React.useState(states);
+  const [dData] = React.useState(lines);
   const [selectedId, setSelectedId] = React.useState(null);
   const classes = useStyles();
   const id_to_idx = reduce(data, (obj, datum, i) => ({...obj, [datum.id]: i}), {});
   const bg_id_to_idx = reduce(bgData, (obj, datum, i) => ({...obj, [datum.id]: i}), {});
 
+  const setAcDataWrap = data => {
+    setAcData(data);
+  };
   const onItemUpdateTime = (newSpan, datum) => {
     //Ignore invalid spans
     if (newSpan[0] >= newSpan[1])
@@ -131,44 +182,50 @@ export default function App() {
       draft[bg_id_to_idx[datum.id]].timespan = newSpan;
     }));
   };
+  const fullProps = {disableDrag: true, disableResize: false};
+  const itemProps = {editAfterSelect: false};
   return (
     <div className={classes.root}>
       <Timeline
         className={classes.timeline}
         initialTimespan={[0,10]}
-        categoryOrder={['c','a','b']}
+        leftSidebarWidth={150}
         minTime={1/60}
-        maxTime={24*10}
-      >
-        <TopTimeLabel labelMarks={tpp => getMarks(tpp,1000)} />
-        <LeftSidebar
-          categoryRenderer={cat => categories[cat]}
-        />
-        <MouseControlCanvas>
-          <CategoryMarks />
-          <TimeMarks labelMarks={tpp => getMarks(tpp,240)} />
-          <FullSpanLayer
-            items={bgData}
-            onUpdateTime={onUpdateBg}
-            timestep={1}
-            itemProps={{disableDrag: true, disableResize: false}}
-          />
-          <StackedSpanLayer
-            items={data}
-            onUpdateTime={onItemUpdateTime}
-            onUpdateCategory={onUpdateCategory}
-            timestep={.5}
-            selected={[selectedId]}
-            onSelect={(id,doSelect) => setSelectedId(doSelect ? id : null)}
-            itemRenderer={datum => (
-              <Button className={classes.button} variant="contained">
-                {datum.id}
-              </Button>
-            )}
-            itemProps={{editAfterSelect: false}}
-          />
-        </MouseControlCanvas>
-      </Timeline>
+        maxTime={24 * 7 * 10}
+        layers={[
+            getAccordianLayer({
+              title: //TODO: Move up
+                <div style={{
+                  height: '100%',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}>Availability</div>,
+              states: acData,
+              onUpdate: setAcDataWrap,
+              renderer: acRenderer,
+              classes
+            }),
+//              getStackedLayers([
+//                getFullLayer(fullData, onUpdateFull, .5, fullProps),
+//                getItemLayer({
+//                  data,
+//                  onItemUpdateTime,
+//                  onItemUpdateCategory,
+//                  timestep: .25,
+//                  selected,
+//                  onSelect,
+//                  itemProps
+//                }),
+//              ])
+//            }),
+          getGraphLayer({
+            getMinRenderer,
+            levels: dData,
+          }),
+        ]}
+      />
     </div>
   );
 }
+
