@@ -9,18 +9,20 @@ export default function getAccordianLayer(props) {
     title,
     states,
     onUpdate,
+    height = 40,
     renderer=() => null,
     classes,
     className,
   } = props;
 
   return {
-    getHeight: () => 40,
+    getHeight: () => height,
     render: rprops => {
       const {
-        //timespan,//TODO: Use this to reduce the number of states displayed.
+        timespan,//TODO: Use this to reduce the number of states displayed.
         timeToPx,
         pxToTime,
+        width,
         height,
         offset,
         key,
@@ -35,14 +37,27 @@ export default function getAccordianLayer(props) {
       };
       return (<React.Fragment key={key}>
         <div style={{
+          boxSizing: 'border-box',
           position: 'absolute',
-          height,
+          height: height+1,
           left: 0,
           width: offset[0],
           top: offset[1],
+          border: '1px dotted #777',
+          backgroundColor: 'white',
         }}>
           {title}
         </div>
+        <div style={{
+            boxSizing: 'border-box',
+            position: 'absolute',
+            left: offset[0],
+            width,
+            top: offset[1],
+            height: height+1, 
+            overflow: 'hidden',
+          }}
+        >
         {
           states.map((s,i) => {
             if (i === states.length - 1)
@@ -54,10 +69,11 @@ export default function getAccordianLayer(props) {
                 key={i}
                 className={clsx({backgroundColor: '#0c25'}, allClasses[s.state], className)}
                 style={{
+                  overflow: 'hidden',
                   position: 'absolute',
-                  top: offset[1],
+                  top: 0,
                   height,
-                  left: left + offset[0],
+                  left,
                   width: right - left,
                 }}
               >
@@ -75,10 +91,11 @@ export default function getAccordianLayer(props) {
               <div key={i} className={allClasses.handle} style={{
                 boxSizing: 'border-box',
                 position: 'absolute',
-                left: right + offset[0] - 2,
+                left: right - 2,
                 width: 5,
-                top: offset[1],
+                top: 0,
                 height,
+//                backgroundColor: '#000a',
               }}>
                 <Draggable
                   limits={[timeToPx([states[i-1].time, states[i+1].time]).map(
@@ -106,6 +123,7 @@ export default function getAccordianLayer(props) {
             );
           })
         }
+        </div>
       </React.Fragment>);
     }
   };

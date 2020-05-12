@@ -10,7 +10,6 @@ import {
 import uuid from 'uuid/v4';
 
 import getOrderedOffsets from './getOrderedOffsets';
-import Context from './Context';
 
 export const styles = theme => ({
   item: {

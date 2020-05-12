@@ -10,7 +10,7 @@ export default function useTimelineWidths(containerRef, leftSideWidth, rightSide
     const curRef = containerRef.current;
     obs.observe(curRef);
     return () => obs.unobserve(curRef);
-  }, [containerWidth,leftSideWidth,rightSideWidth]);
+  }, [containerRef,leftSideWidth,rightSideWidth]);
 
   if (containerWidth === null) {
     return {

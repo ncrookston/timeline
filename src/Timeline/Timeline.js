@@ -4,7 +4,11 @@ import {withStyles} from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
 
+import MouseControlCanvas from './MouseControlCanvas';
+import TimeLabel from './TimeLabel';
+import TimeMarks from './TimeMarks';
 import useTimelineWidths from './useTimelineWidths';
+
 export const styles = theme => ({
 //  label: {
 //    boxSizing: 'border-box',
@@ -20,6 +24,17 @@ export const styles = theme => ({
   },
 });
 
+function getMarks(timePerPx, minPx) {
+  const breaks = [
+    [24*7, timeH => `Week ${timeH / (24*7)}`],
+    [24, timeH => `Day ${timeH / 24}`],
+    [1, timeH => `Hour ${timeH}`],
+    [1/4, timeH => 'Minute ' + (timeH * 4 * 15) % 60],
+    [1/60, timeH => `Minute ${Math.round(timeH * 60) % 60}`],
+    [1/3600, timeH => `Second ${Math.round(timeH * 3600) % 60}`]
+  ];
+  return breaks.find(obj => obj[0] / timePerPx < minPx) || breaks[breaks.length-1];
+}
 //https://stackoverflow.com/questions/56519255/is-there-a-better-way-to-do-partial-sums-of-array-items-in-javascript
 function partialSum(arr) {
   if (arr.length === 0)
@@ -36,6 +51,8 @@ function Timeline(props) {
     initialTimespan,//Need a sensible default...
     classes,
     className,
+    minTime,
+    maxTime,
     initialLeftSidebar = 150,
     initialRightSidebar = 0,
     headerHeight = 30,
@@ -59,7 +76,7 @@ function Timeline(props) {
     rightWidth
   } = useTimelineWidths(containerRef, leftSidebar, rightSidebar);
 
-  if (timePerPx === null && canvasWidth != 0) {
+  if (timePerPx === null && canvasWidth !== 0) {
     setTimePerPx((initialTimespan[1] - initialTimespan[0]) / canvasWidth);
   }
 
@@ -84,16 +101,48 @@ function Timeline(props) {
       className={clsx(classes.outer, className)}
       style={{height: fullHeight+'px'}}
     >
-    {
-      layers.map((layer,idx) => layer.render({
-        key: idx,
-        timespan,
-        timeToPx,
-        pxToTime,
-        height: heights[idx+1],
-        offset: [leftWidth, offsets[idx+1]],
-      }))
-    }
+      <TimeLabel
+        left={leftWidth}
+        width={canvasWidth}
+        height={headerHeight}
+        labelMarks={tpp => getMarks(tpp,1000)}
+        timePerPx={timePerPx}
+        timespan={timespan}
+      />
+      <TimeMarks
+        left={leftWidth}
+        width={canvasWidth}
+        top={headerHeight}
+        height={fullHeight}
+        labelMarks={tpp => getMarks(tpp,1000)}
+        timeToPx={timeToPx}
+        timePerPx={timePerPx}
+        timespan={timespan}
+      />
+      <MouseControlCanvas
+        className={classes.canvas}
+        minTime={minTime}
+        maxTime={maxTime}
+        offset={[leftWidth, 0]}
+        width={canvasWidth}
+        height={fullHeight}
+        timespan={timespan}
+        setTimeStart={setTimeStart}
+        timePerPx={timePerPx}
+        setTimePerPx={setTimePerPx}
+      />
+      {
+        layers.map((layer,idx) => layer.render({
+          key: idx,
+          timespan,
+          timeToPx,
+          pxToTime,
+          timePerPx,
+          height: heights[idx+1],
+          offset: [leftWidth, offsets[idx+1]],
+          width: canvasWidth,
+        }))
+      }
     </div>
   );
 }

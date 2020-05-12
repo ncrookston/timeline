@@ -2,7 +2,6 @@ import React from 'react';
 import {withStyles} from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
 
-import Context from './Context';
 import {usePan} from './Draggable';
 
 export const styles = theme => ({
@@ -15,22 +14,18 @@ export const styles = theme => ({
 
 function MouseControlCanvas(props) {
   const {
-    classes
+    classes,
     maxTime,
     minTime,
-    headerHeight,
-    footerHeight,
-  } = props;
-
-  const {
-    containerWidthPx,
+    width,
+    height,
     timespan,
     setTimeStart,
     timePerPx,
     setTimePerPx,
-    leftSidebarWidth,
-    rightSidebarWidth,
-  } = React.useContext(Context);
+    offset,
+  } = props;
+
   const onDrag = (evt, info) => {
     setTimeStart(timespan[0] - info.delta[0] * timePerPx);
   };
@@ -42,38 +37,39 @@ function MouseControlCanvas(props) {
         evt.stopPropagation();
         let newTPP = timePerPx * Math.pow(.8, .1 * evt.deltaY);
         if (maxTime !== null)
-          newTPP = Math.min(newTPP, maxTime / containerWidthPx);
+          newTPP = Math.min(newTPP, maxTime / width);
         if (minTime !== null)
-          newTPP = Math.max(newTPP, minTime / containerWidthPx);
+          newTPP = Math.max(newTPP, minTime / width);
         setTimePerPx(newTPP);
         const off = evt.clientX - ref.current.getBoundingClientRect().left;
         const fixedTimePt = off * timePerPx + timespan[0];
         setTimeStart(fixedTimePt - newTPP * off);
       }
+      else if (Math.abs(evt.deltaX) > Math.abs(evt.deltaY)) {
+        evt.preventDefault();
+        evt.stopPropagation();
+        setTimeStart(start => start + timePerPx * evt.deltaX);
+      }
     };
     const elem = ref.current;
     elem.addEventListener('wheel', onWheel, {passive: false});
     return () => elem.removeEventListener('wheel',onWheel);
-  }, [ref,setTimeStart,setTimePerPx,leftSidebarWidthPx,timePerPx,timespan,containerWidthPx,maxTime,minTime]);
+  }, [ref,setTimeStart,setTimePerPx,timePerPx,timespan,width,maxTime,minTime]);
 
   const panListeners = usePan({onDrag});
-  return (
+  return (<>
     <div
       ref={ref}
       className={classes.root}
       style={{
-        left: leftSidebarWidthPx,
-        right: rightSidebarWidthPx,
-        top: headerHeightPx,
-        bottom: footerHeightPx,
+        left: offset[0],
+        width,
+        top: offset[1],
+        height,
       }}
       {...panListeners}
-    >
-      <TopTimeLabel labelMarks={tpp => getMarks(tpp,1000)} />
-      <CategoryMarks />
-      <TimeMarks labelMarks={tpp => getMarks(tpp,240)} />
-    </div>
-  );
+    />
+  </>);
 }
 
 MouseControlCanvas.propTypes = {
@@ -89,6 +85,12 @@ MouseControlCanvas.propTypes = {
    * The maximum displayable timespan duration.
    */
   maxTime: PropTypes.number.isRequired,
+  width: PropTypes.number.isRequired,
+  height: PropTypes.number.isRequired,
+  timespan: PropTypes.array.isRequired,
+  setTimeStart: PropTypes.func.isRequired,
+  timePerPx: PropTypes.number,
+  setTimePerPx: PropTypes.func.isRequired,
 };
 
 export default withStyles(styles, {name: 'CrkMouseControlCanvas' })(MouseControlCanvas);

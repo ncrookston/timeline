@@ -56,7 +56,7 @@ export function useDraggable({onStart, onDrag, limits=null, onClick=null}) {
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
     };
-  }, [didMove, firstMouse, lastMouse, onClick, onDrag]);
+  }, [didMove, firstMouse, lastMouse, onClick, onDrag, rLimits]);
 
   return {
     onMouseDown: evt => {

@@ -2,7 +2,6 @@ import React from 'react';
 import {withStyles} from '@material-ui/styles';
 import {range} from 'lodash';
 import clsx from 'clsx';
-import Context from './Context';
 
 export const styles = theme => ({
   hash: {
@@ -15,24 +14,30 @@ export const styles = theme => ({
   },
 });
 
-function TimeMarks({labelMarks, classes, className}) {
+function TimeMarks(props) {
   const {
-    timespan,
-    timePerPx,
+    left,
+    width,
+    top,
+    height,
+    labelMarks,
     timeToPx,
-    canvasWidthPx,
-  } = React.useContext(Context);
+    timePerPx,
+    timespan,
+    classes,
+    className,
+  } = props;
 
   const markStep = labelMarks(timePerPx)[0];
-
-  const pxStart = timeToPx(Math.floor(timespan[0] / markStep) * markStep);
+  const startTime = Math.floor(timespan[0] / markStep) * markStep
+  const pxStart = timeToPx(startTime);
   const pxWidth = markStep / timePerPx;
-  const pxEnd = pxStart + canvasWidthPx + pxWidth;
-  return range(pxStart, pxEnd, pxWidth).map((left,idx) => (
+  const pxEnd = pxStart + width + pxWidth;
+  return range(pxStart, pxEnd, pxWidth).map((bleft,idx) => (
     <div
       key={idx}
       className={clsx(classes.hash, className)}
-      style={{left, width: pxWidth}}
+      style={{left: left + bleft, width: pxWidth, top, height}}
     />
   ));
 }

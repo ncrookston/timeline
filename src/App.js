@@ -7,16 +7,15 @@ import Typography from '@material-ui/core/Typography';
 import {produce} from 'immer';
 import {last,reduce} from 'lodash';
 
-import Timeline, {getAccordianLayer, getCompositeLayer} from './Timeline';
+import Timeline, {
+  getAccordianLayer,
+  getFullLayer,
+  getGraphLayer,
+  getItemLayer
+} from './Timeline';
 
 //import CategoryMarks from './Timeline/CategoryMarks';
 //import CategoryLayer from './Timeline/CategoryLayer';
-//import TimeMarks from './Timeline/TimeMarks';
-//import MouseControlCanvas from './Timeline/MouseControlCanvas';
-//import {LeftSidebar} from './Timeline/Sidebar';
-//import {TopTimeLabel} from './Timeline/TimeLabel';
-//import accordianCategory from './Timeline/accordianCategory';
-//import graphCategory from './Timeline/graphCategory';
 //import FullSpanLayer from './Timeline/FullSpanLayer';
 //import StackedSpanLayer from './Timeline/StackedSpanLayer';
 
@@ -48,16 +47,16 @@ const useStyles = makeStyles({
       backgroundColor: '#85b3ff',
     }
   },
-  happy: {
+  preassault: {
     backgroundColor: '#0c33',
   },
-  angry: {
+  assault: {
     backgroundColor: '#c033',
   },
-  silly: {
+  sustain: {
     backgroundColor: '#cc33',
   },
-  sad: {
+  atanchor: {
     backgroundColor: '#03c3',
   },
 });
@@ -110,10 +109,10 @@ const classItems = [
 ];
 
 const states = [
-  {time: 0, state: 'happy'},
-  {time: 2, state: 'angry'},
-  {time: 5, state: 'silly'},
-  {time: 8, state: 'sad'},
+  {time: 0, state: 'preassault'},
+  {time: 2, state: 'assault'},
+  {time: 5, state: 'sustain'},
+  {time: 8, state: 'atanchor'},
   {time: 10, state: null},
 ];
 const lines = [
@@ -124,17 +123,6 @@ const lines = [
   {x: 10,  y: 99},
 ];
 
-function getMarks(timePerPx, minPx) {
-  const breaks = [
-    [24*7, timeH => `Week ${timeH / (24*7)}`],
-    [24, timeH => `Day ${timeH / 24}`],
-    [1, timeH => `Hour ${timeH}`],
-    [1/4, timeH => (timeH * 4 * 15) % 60],
-    [1/60, timeH => `M ${Math.round(timeH * 60) % 60}`],
-    [1/3600, timeH => `S ${Math.round(timeH * 3600) % 60}`]
-  ];
-  return breaks.find(obj => obj[0] / timePerPx < minPx) || last(breaks);
-}
 function acRenderer(state) {
   return (
     <div style={{
@@ -146,6 +134,16 @@ function acRenderer(state) {
     }}>
       <Tooltip title={state.state}><Typography>{state.state}</Typography></Tooltip>
     </div>
+  );
+}
+function getTitle(title) {
+  return (
+    <div style={{
+      height: '100%',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+    }}>{title}</div>
   );
 }
 
@@ -162,7 +160,7 @@ export default function App() {
   const setAcDataWrap = data => {
     setAcData(data);
   };
-  const onItemUpdateTime = (newSpan, datum) => {
+  const onUpdateItemTime = (newSpan, datum) => {
     //Ignore invalid spans
     if (newSpan[0] >= newSpan[1])
       return;
@@ -170,7 +168,7 @@ export default function App() {
       draft[id_to_idx[datum.id]].timespan = newSpan;
     }));
   };
-  const onUpdateCategory = (category, datum) => {
+  const onUpdateItemCategory = (category, datum) => {
     setData(produce(data, draft => {
       draft[id_to_idx[datum.id]].category = category;
     }));
@@ -182,7 +180,7 @@ export default function App() {
       draft[bg_id_to_idx[datum.id]].timespan = newSpan;
     }));
   };
-  const fullProps = {disableDrag: true, disableResize: false};
+  const bgProps = {disableDrag: true, disableResize: false};
   const itemProps = {editAfterSelect: false};
   return (
     <div className={classes.root}>
@@ -194,34 +192,36 @@ export default function App() {
         maxTime={24 * 7 * 10}
         layers={[
             getAccordianLayer({
-              title: //TODO: Move up
-                <div style={{
-                  height: '100%',
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}>Availability</div>,
+              title: getTitle('Availability'),
               states: acData,
               onUpdate: setAcDataWrap,
               renderer: acRenderer,
               classes
             }),
 //              getStackedLayers([
-//                getFullLayer(fullData, onUpdateFull, .5, fullProps),
+                getFullLayer({
+                  data: bgData,
+                  onUpdateItemTime: onUpdateBg,
+                  timestep: .5,
+                  itemProps: bgProps
+                }),
 //                getItemLayer({
 //                  data,
-//                  onItemUpdateTime,
-//                  onItemUpdateCategory,
+//                  categoryOrder: ['a','b','c'],
+//                  onUpdateItemTime,
+//                  onUpdateItemCategory,
 //                  timestep: .25,
-//                  selected,
-//                  onSelect,
+//                  selected: [selectedId],
+//                  onSelect: (d, doSelect) => {
+//                    setSelectedId(doSelect ? d.id : null)
+//                  },
 //                  itemProps
 //                }),
 //              ])
 //            }),
           getGraphLayer({
-            getMinRenderer,
-            levels: dData,
+            title: getTitle('Levels'),
+            data: dData,
           }),
         ]}
       />

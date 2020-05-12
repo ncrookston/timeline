@@ -2,7 +2,6 @@ import React from 'react';
 import {withStyles} from '@material-ui/core/styles';
 import clsx from 'clsx';
 
-import Context from './Context';
 import {LeftResizable,RightResizable} from './Draggable';
 import getOrderedOffsets from './getOrderedOffsets';
 

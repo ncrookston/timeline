@@ -2,7 +2,6 @@ import React from 'react';
 
 import {withStyles} from '@material-ui/core/styles';
 
-import Context from './Context';
 import {LeftResizable,RightResizable,usePan} from './Draggable';
 
 export const styles = theme => ({
@@ -32,6 +31,7 @@ function Item(props) {
   const {
     classes,
     datum,
+    xOffset,
     yOffset,
     height,
     onUpdate,
@@ -43,12 +43,10 @@ function Item(props) {
     disableDrag = false,
     disableResize = false,
     editAfterSelect = false,
+    timeToPx,
+    timePerPx,
   } = props;
 
-  const {
-    timePerPx,
-    timeToPx,
-  } = React.useContext(Context);
   const [x0,x1] = timeToPx(getTimespan(datum));
   const width = x1 - x0 - 2;
   const itemRef = React.useRef();
@@ -85,10 +83,10 @@ function Item(props) {
     onUpdate(newSpan, datum, null);
   };
   const style = {
-    top: yOffset + 'px',
-    left: x0+1+'px',
-    width: width+'px',
-    height: height+'px',
+    top: yOffset,
+    left: xOffset + x0 + 1,
+    width,
+    height,
   };
   const rStyle = {
     visibility: selected ? 'visible' : 'hidden',
