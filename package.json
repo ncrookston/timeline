@@ -1,7 +1,7 @@
 {
-  "name": "timeline",
-  "version": "0.1.0",
-  "private": true,
+  "name": "crookston-timeline",
+  "version": "0.0.1",
+  "private": false,
   "dependencies": {
     "@material-ui/core": "^4.9.8",
     "@material-ui/icons": "^4.9.1",
@@ -35,5 +35,21 @@
   },
   "devDependencies": {
     "@nivo/line": "^0.61.1"
-  }
+  },
+  "description": "This project is an experiment to learn react better and implement a highly configurable timeline library.",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ncrookston/timeline.git"
+  },
+  "keywords": [
+    "react",
+    "timeline"
+  ],
+  "author": "Nathan Crookston",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ncrookston/timeline/issues"
+  },
+  "homepage": "https://github.com/ncrookston/timeline#readme"
 }
